@@ -21,8 +21,15 @@ export type MandantAkte = {
   firmenname: string;
   rechtsform: string;
   adresse: string;
+  strasse: string | null;
+  hausnummer: string | null;
+  plz: string | null;
+  ort: string | null;
+  land: string | null;
   website: string | null;
   telefon: string | null;
+  telefonVorwahl: string | null;
+  telefonNummer: string | null;
   email: string | null;
   steuernummer: string | null;
   umsatzsteuerId: string | null;
@@ -161,11 +168,18 @@ export async function getMandantAkte(
       firmenname: organization.name,
       rechtsform: organization.rechtsform ?? "",
       adresse: formatAdresse(organization),
+      strasse: organization.strasse,
+      hausnummer: organization.hausnummer,
+      plz: organization.plz,
+      ort: organization.ort,
+      land: organization.land,
       website: organization.website,
       telefon: formatTelefon(
         organization.telefon_vorwahl,
         organization.telefon_nummer,
       ),
+      telefonVorwahl: organization.telefon_vorwahl,
+      telefonNummer: organization.telefon_nummer,
       email: organization.email,
       steuernummer: organization.steuernummer,
       umsatzsteuerId: organization.umsatzsteuer_id,

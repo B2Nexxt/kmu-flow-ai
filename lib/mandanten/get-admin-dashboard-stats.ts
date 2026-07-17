@@ -2,14 +2,20 @@ import { MANDANT_STATUS } from "@/lib/mandanten/mandant-status";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export type AdminDashboardStats = {
+  gesamt: number;
   mandanten: number;
   interessenten: number;
+  inaktiv: number;
 };
 
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   const supabase = createSupabaseAdminClient();
 
-  const [mandantenResult, interessentenResult] = await Promise.all([
+  const [gesamtResult, mandantenResult, interessentenResult, inaktivResult] =
+    await Promise.all([
+    supabase
+      .from("organizations")
+      .select("*", { count: "exact", head: true }),
     supabase
       .from("organizations")
       .select("*", { count: "exact", head: true })
@@ -18,7 +24,17 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
       .from("organizations")
       .select("*", { count: "exact", head: true })
       .eq("status", MANDANT_STATUS.INTERESSENT),
+    supabase
+      .from("organizations")
+      .select("*", { count: "exact", head: true })
+      .eq("status", MANDANT_STATUS.INAKTIV),
   ]);
+
+  if (gesamtResult.error) {
+    throw new Error(
+      `Dashboard-Kennzahlen konnten nicht geladen werden (Gesamt): ${gesamtResult.error.message}`,
+    );
+  }
 
   if (mandantenResult.error) {
     throw new Error(
@@ -32,8 +48,16 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     );
   }
 
+  if (inaktivResult.error) {
+    throw new Error(
+      `Dashboard-Kennzahlen konnten nicht geladen werden (Inaktiv): ${inaktivResult.error.message}`,
+    );
+  }
+
   return {
+    gesamt: gesamtResult.count ?? 0,
     mandanten: mandantenResult.count ?? 0,
     interessenten: interessentenResult.count ?? 0,
+    inaktiv: inaktivResult.count ?? 0,
   };
 }

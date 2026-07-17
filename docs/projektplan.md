@@ -70,32 +70,22 @@ Das Kundenportal und der Kunden-Login sind noch **nicht** umgesetzt.
 - Angebotsformular entwickeln
 - Datenbankstruktur definieren
 
-### Sprint 2 – Zugang & Mandantenverwaltung
+### Sprint 2 – Zugang & Mandantenverwaltung (Abgeschlossen)
 
-**Geplant:**
+**Umgesetzt:**
 
-- Login
-- Abmelden
-- Geschützte Seiten
-- Plattform-Admin-Bereich für den Plattform-Hauptadmin
-- Kundenunternehmen manuell anlegen
-- Ersten Kundenbenutzer einladen
-- Rollen: Plattform-Hauptadmin, Kunden-Admin und Mitarbeiter
-- Zentrale Vorbereitung für spätere Rollen- und Berechtigungsverwaltung
-- Keine weiteren Plattform-Admin-Benutzer in Version 1
-- Keine feingranularen Plattform-Berechtigungen in Version 1
-
-**Aktueller Stand im Plattform-Admin-Bereich:**
-
-- Plattform-Admin-Dashboard unter `/admin`
-- Kennzahlenkarten für Mandanten, Interessenten, Angebote, Verträge und aktive Abonnements
-- Schnellaktionen im Adminbereich:
-  - Neuer Interessent
-  - Neuer Mandant
-  - Angebot erstellen
-  - Beratung planen
-  - Module verwalten
+- Plattform-Admin-Bereich für den Plattform-Hauptadmin unter `/admin`
+- Plattform-Admin-Dashboard mit Kennzahlenkarten für Mandanten, Interessenten, Angebote, Verträge und aktive Abonnements
+- Echte Kennzahlen für **Mandanten** und **Interessenten** aus Supabase (`organizations`, gefiltert nach Status)
+- Schnellaktion **Mandant anlegen** im Adminbereich
 - 6-stufiger Einrichtungsassistent für neue Mandanten unter `/admin/mandanten/neu`
+- Speicherung von Mandanten in Supabase (`organizations`) inkl. Status, Stammdaten, Vertrags-/Preisangaben
+- Speicherung von Ansprechpartnern, optionaler Bankverbindungen, Modulen und Automatisierungen
+- Geschäftsführer-Logik (GF = HA oder getrennte Personen mit Position „Geschäftsführer“)
+- Mandantenakte unter `/admin/mandanten/[id]` mit Laden echter Daten aus Supabase
+- Supabase-Anbindung (Publishable Key im Browser, Service Role serverseitig)
+- Datenmodell auf bestehender Tabelle `organizations` (keine parallele `mandanten`-Tabelle)
+- Einheitlicher Mandantendatensatz mit Status **Interessent** / **Aktiver Mandant**
 
 **Die sechs Schritte des Einrichtungsassistenten:**
 
@@ -104,16 +94,30 @@ Das Kundenportal und der Kunden-Login sind noch **nicht** umgesetzt.
 3. **Bank- und Steuerdaten** – Steuer- und Registerangaben sowie Bankverbindung
 4. **Module und Preis** – Modulauswahl, Preisfelder und Monatspreisberechnung
 5. **Automatisierungen** – Standard- und individuelle Automatisierungen
-6. **Prüfen und anlegen** – Zusammenfassung und Bestätigung
+6. **Prüfen und anlegen** – Zusammenfassung, Validierung und atomare Speicherung in Supabase
 
-**Hinweise zum aktuellen Prototyp:**
+**Funktionsumfang des Onboardings (produktiv):**
 
-- Der Assistent ist als Prototyp vollständig navigierbar.
-- Die Eingaben werden aktuell noch nicht über mehrere Schritte gespeichert.
-- Schritt 6 verwendet noch Beispieldaten.
-- Die echte Datenbankanbindung und Mandantenanlage folgen als Nächstes.
-- Für die erste Version gibt es genau einen Plattform-Hauptadmin.
-- Weitere Plattform-Admin-Rollen und feinere Berechtigungen werden später ergänzt.
+- Der 6-stufige Mandanten-Onboarding-Assistent funktioniert produktiv (Navigation, Validierung, Speichern).
+- Mandanten werden in Supabase in der Tabelle `organizations` gespeichert.
+- Ansprechpartner werden in `ansprechpartner` gespeichert.
+- Die Geschäftsführer-Logik ist umgesetzt (eine Person mit beiden Rollen oder getrennte Datensätze).
+- Bankverbindungen werden optional in `bankverbindungen` gespeichert.
+- Module und Automatisierungen werden in `organization_modules` bzw. `organization_automatisierungen` gespeichert.
+- Die Mandantenakte lädt echte Daten aus Supabase.
+- Das Admin-Dashboard zeigt echte Kennzahlen für Mandanten und Interessenten aus Supabase.
+
+**Noch nicht umgesetzt (aus ursprünglichem Sprint-2-Scope, später):**
+
+- Login, Abmelden und geschützte Seiten für den Plattform-Admin
+- Ersten Kundenbenutzer einladen
+- Rollen Kunden-Admin und Mitarbeiter im Kundenportal
+- Weitere Plattform-Admin-Benutzer und feingranulare Plattform-Berechtigungen
+
+**Architektur-Hinweise (unverändert):**
+
+- Für Version 1 ist genau ein Plattform-Hauptadmin vorgesehen.
+- Rollen und Berechtigungen sollen später zentral verwaltet werden, nicht fest in einzelnen Seiten verankert sein.
 
 ### Sprint 3 – Angebotsmanagement
 
@@ -138,22 +142,29 @@ Das Kundenportal und der Kunden-Login sind noch **nicht** umgesetzt.
 
 - Next.js-Projekt mit App Router
 - Gemeinsames Layout mit Sidebar für den Mandantenbereich
-- Mandanten-Dashboard mit Kennzahlen und letzten Aktivitäten
+- Mandanten-Dashboard mit Kennzahlen und letzten Aktivitäten (UI-Prototyp)
 - Angebotsformular mit Positionen, Umsatzsteuer, Validierung und Vorschau
-- Supabase-Anbindung vorbereitet und Verbindungstest unter `/test`
-- Plattform-Admin-Dashboard unter `/admin`
-- 6-stufiger Einrichtungsassistent für neue Mandanten als navigierbarer Prototyp
-- Projektdokumentation in `docs/projektplan.md`
+- Supabase-Anbindung und Verbindungstest unter `/test`
+- Plattform-Admin-Dashboard unter `/admin` mit echten Kennzahlen für Mandanten und Interessenten
+- 6-stufiger Mandanten-Onboarding-Assistent unter `/admin/mandanten/neu` (produktiv)
+- Validierung aller relevanten Pflichtfelder inkl. E-Mail, IBAN/BIC und Geschäftsführer-Logik
+- Atomare Mandantenanlage über Server Action und RPC `create_mandant_onboarding`
+- Speicherung in Supabase: `organizations`, `ansprechpartner`, `bankverbindungen`, `organization_modules`, `organization_automatisierungen`
+- Mandantenakte unter `/admin/mandanten/[id]` mit echten Daten und Erfolgsmeldung nach Anlage
+- Einheitlicher Mandantendatensatz mit Status Interessent / Aktiver Mandant
+- Projektdokumentation in `docs/`
+- **Sprint 2 – Zugang & Mandantenverwaltung** (Mandanten-Onboarding und Admin-Dashboard)
 
 ### In Arbeit
 
-- Sprint 2: Zugang & Mandantenverwaltung
-- Plattform-Admin-Bereich und Mandanten-Einrichtungsassistent
-- Vorbereitung der Datenbankanbindung für Mandanten
+- **Sprint 3 – Angebotsmanagement**
+  - Angebote speichern
+  - PDF-Erzeugung
+  - Angebotsliste
 
 ### Als Nächstes
 
-1. Eingaben des Assistenten zwischen den Schritten speichern
-2. Datenmodell für Geschäftsführer, Ansprechpartner, Bankdaten, Module, Preise und Automatisierungen erweitern
-3. Mandanten wirklich in Supabase anlegen
-4. Hauptadmin-Login und geschützten Adminbereich umsetzen
+1. **Mandantenakte bearbeiten** – bestehende Mandantendaten in der Akte ändern und speichern
+2. Statuswechsel Interessent → Aktiver Mandant in der Mandantenakte
+3. Plattform-Admin-Login und geschützter Adminbereich
+4. Ersten Kundenbenutzer einladen

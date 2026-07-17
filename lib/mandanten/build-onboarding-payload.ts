@@ -1,4 +1,5 @@
 import type { MandantenOnboardingData } from "@/app/admin/mandanten/neu/mandanten-onboarding-context";
+import type { AnsprechpartnerInput } from "@/lib/mandanten/ansprechpartner-input";
 import {
   isBankverbindungComplete,
   normalizeBic,
@@ -17,7 +18,7 @@ type ContactPayload = {
 };
 
 function hasOptionalGeschaeftsfuehrerData(
-  gf: MandantenOnboardingData["geschaeftsfuehrer"],
+  gf: AnsprechpartnerInput["geschaeftsfuehrer"],
 ) {
   return (
     gf.vorname.trim() !== "" ||
@@ -27,7 +28,7 @@ function hasOptionalGeschaeftsfuehrerData(
   );
 }
 
-function buildContacts(data: MandantenOnboardingData): ContactPayload[] {
+export function buildContacts(data: AnsprechpartnerInput): ContactPayload[] {
   const gf = data.geschaeftsfuehrer;
   const ap = data.hauptansprechpartner;
   const contacts: ContactPayload[] = [];

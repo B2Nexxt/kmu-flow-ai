@@ -10,16 +10,19 @@ const quickActions = [
   { label: "Module verwalten", icon: "⚙️", href: null },
 ];
 
-export default async function AdminPage() {
-  const { mandanten, interessenten } = await getAdminDashboardStats();
+const statCardClassName =
+  "rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900";
 
-  const stats = [
-    { label: "Mandanten", value: mandanten },
-    { label: "Interessenten", value: interessenten },
+const statCardLinkClassName = `${statCardClassName} block transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50`;
+
+export default async function AdminPage() {
+  const { gesamt, mandanten, interessenten, inaktiv } = await getAdminDashboardStats();
+
+  const otherStats = [
     { label: "Angebote", value: 0 },
     { label: "Verträge", value: 0 },
     { label: "Aktive Abonnements", value: 0 },
-  ];
+  ] as const;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -42,12 +45,22 @@ export default async function AdminPage() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
-            >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <Link href="/admin/mandanten" className={statCardLinkClassName}>
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              Mandanten
+            </p>
+            <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+              {gesamt}
+            </p>
+            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+              Aktive Mandanten: {mandanten} · Interessenten: {interessenten} ·
+              Inaktiv: {inaktiv}
+            </p>
+          </Link>
+
+          {otherStats.map((stat) => (
+            <div key={stat.label} className={statCardClassName}>
               <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                 {stat.label}
               </p>
@@ -62,7 +75,7 @@ export default async function AdminPage() {
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
             Schnellaktionen
           </h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {quickActions.map((action) => {
               const className =
                 "flex min-h-32 flex-col items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-white p-6 text-center transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800/50";

@@ -1,4 +1,5 @@
 import type { MandantenOnboardingData } from "@/app/admin/mandanten/neu/mandanten-onboarding-context";
+import type { AnsprechpartnerInput } from "@/lib/mandanten/ansprechpartner-input";
 import {
   validateBankverbindung,
   validateEmail,
@@ -50,56 +51,76 @@ function validateStep1(data: MandantenOnboardingData): string[] {
   return errors;
 }
 
-function validateStep2(data: MandantenOnboardingData): string[] {
-  const errors: string[] = [];
+export type AnsprechpartnerFieldErrors = {
+  gfVorname?: string;
+  gfNachname?: string;
+  gfEmail?: string;
+  gfTelefon?: string;
+  vorname?: string;
+  nachname?: string;
+  position?: string;
+  email?: string;
+  telefon?: string;
+};
+
+export function getAnsprechpartnerFieldErrors(
+  data: AnsprechpartnerInput,
+): AnsprechpartnerFieldErrors {
+  const errors: AnsprechpartnerFieldErrors = {};
   const gf = data.geschaeftsfuehrer;
   const ap = data.hauptansprechpartner;
 
   if (ap.gleicherWieGeschaeftsfuehrer) {
     if (!gf.vorname.trim()) {
-      errors.push("Bitte geben Sie einen Vornamen für den Geschäftsführer an.");
+      errors.gfVorname = "Bitte geben Sie einen Vornamen für den Geschäftsführer an.";
     }
     if (!gf.nachname.trim()) {
-      errors.push("Bitte geben Sie einen Nachnamen für den Geschäftsführer an.");
+      errors.gfNachname =
+        "Bitte geben Sie einen Nachnamen für den Geschäftsführer an.";
     }
 
     const gfEmailError = validateEmail(gf.email, { required: true });
-    if (gfEmailError) errors.push(gfEmailError);
+    if (gfEmailError) errors.gfEmail = gfEmailError;
 
     if (!gf.telefonVorwahl.trim() || !gf.telefonNummer.trim()) {
-      errors.push(
-        "Bitte geben Sie Vorwahl und Telefonnummer für den Geschäftsführer an.",
-      );
+      errors.gfTelefon =
+        "Bitte geben Sie Vorwahl und Telefonnummer für den Geschäftsführer an.";
     }
 
     return errors;
   }
 
   const gfEmailError = validateEmail(gf.email, { required: false });
-  if (gfEmailError) errors.push(gfEmailError);
+  if (gfEmailError) errors.gfEmail = gfEmailError;
 
   if (!ap.vorname.trim()) {
-    errors.push("Bitte geben Sie einen Vornamen für den Hauptansprechpartner an.");
+    errors.vorname =
+      "Bitte geben Sie einen Vornamen für den Hauptansprechpartner an.";
   }
   if (!ap.nachname.trim()) {
-    errors.push(
-      "Bitte geben Sie einen Nachnamen für den Hauptansprechpartner an.",
-    );
+    errors.nachname =
+      "Bitte geben Sie einen Nachnamen für den Hauptansprechpartner an.";
   }
   if (!ap.position.trim()) {
-    errors.push("Bitte geben Sie eine Position für den Hauptansprechpartner an.");
+    errors.position =
+      "Bitte geben Sie eine Position für den Hauptansprechpartner an.";
   }
 
   const apEmailError = validateEmail(ap.email, { required: true });
-  if (apEmailError) errors.push(apEmailError);
+  if (apEmailError) errors.email = apEmailError;
 
   if (!ap.telefonVorwahl.trim() || !ap.telefonNummer.trim()) {
-    errors.push(
-      "Bitte geben Sie Vorwahl und Telefonnummer für den Hauptansprechpartner an.",
-    );
+    errors.telefon =
+      "Bitte geben Sie Vorwahl und Telefonnummer für den Hauptansprechpartner an.";
   }
 
   return errors;
+}
+
+export function validateAnsprechpartner(data: AnsprechpartnerInput): string[] {
+  return Object.values(getAnsprechpartnerFieldErrors(data)).filter(
+    (message): message is string => Boolean(message),
+  );
 }
 
 export function validateFullOnboarding(
@@ -107,7 +128,7 @@ export function validateFullOnboarding(
 ): OnboardingValidationResult {
   const errors = [
     ...validateStep1(data),
-    ...validateStep2(data),
+    ...validateAnsprechpartner(data),
     ...collectBankErrors(data.bankverbindung),
   ];
 
