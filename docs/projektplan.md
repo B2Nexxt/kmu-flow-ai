@@ -119,6 +119,39 @@ Das Kundenportal und der Kunden-Login sind noch **nicht** umgesetzt.
 - Für Version 1 ist genau ein Plattform-Hauptadmin vorgesehen.
 - Rollen und Berechtigungen sollen später zentral verwaltet werden, nicht fest in einzelnen Seiten verankert sein.
 
+### Mandantenverwaltung Version 1.0 (Abgeschlossen)
+
+**Dashboard**
+
+- Kennzahlen (Gesamtanzahl Mandanten, Teilzahlen für aktive Mandanten, Interessenten und Inaktive)
+- Navigation zur Mandantenliste (gemeinsame Mandanten-Karte und Link)
+
+**Mandantenliste** (`/admin/mandanten`)
+
+- Übersicht aller Mandanten aus `organizations`
+- Zeile komplett klickbar → Mandantenakte
+- Suche über Firmenname und Hauptansprechpartner (serverseitig, `?q=`)
+- Statusfilter (Alle, Aktiver Mandant, Interessent, Inaktiv) über `?status=`
+- Sortierung nach Firmenname und Erstellungsdatum über `?sort=` und `?order=`
+- URL-Parameter für Suche, Filter und Sortierung (kombinierbar)
+- Serverseitiges Laden via `createSupabaseAdminClient()`
+
+**Mandantenakte** (`/admin/mandanten/[id]`)
+
+- Stammdaten bearbeiten und speichern
+- Ansprechpartner bearbeiten (GF/HA-Logik wie beim Onboarding)
+- Status bearbeiten (Interessent, Aktiver Mandant, Inaktiv)
+- Serverseitige Validierung und Erfolgs-/Fehlermeldungen
+- Navigation zwischen Dashboard, Mandantenliste und Akte
+
+**Datenbank & Backend**
+
+- RPC `create_mandant_onboarding` (atomare Mandantenanlage)
+- RPC `replace_organization_contacts` (atomares Ersetzen der Ansprechpartner)
+- Server Actions für Stammdaten- und Ansprechpartner-Updates
+- Migrationen für Onboarding, Kontakt-Replace und Status `inaktiv`
+- Atomare Ansprechpartner-Updates (Delete + Insert in einer Transaktion)
+
 ### Sprint 3 – Angebotsmanagement
 
 - Angebote speichern
@@ -151,20 +184,37 @@ Das Kundenportal und der Kunden-Login sind noch **nicht** umgesetzt.
 - Atomare Mandantenanlage über Server Action und RPC `create_mandant_onboarding`
 - Speicherung in Supabase: `organizations`, `ansprechpartner`, `bankverbindungen`, `organization_modules`, `organization_automatisierungen`
 - Mandantenakte unter `/admin/mandanten/[id]` mit echten Daten und Erfolgsmeldung nach Anlage
-- Einheitlicher Mandantendatensatz mit Status Interessent / Aktiver Mandant
+- Einheitlicher Mandantendatensatz mit Status Interessent, Aktiver Mandant und Inaktiv
 - Projektdokumentation in `docs/`
-- **Sprint 2 – Zugang & Mandantenverwaltung** (Mandanten-Onboarding und Admin-Dashboard)
+- **Sprint 2 – Zugang & Mandanten-Onboarding**
+- **Mandantenverwaltung Version 1.0 (abgeschlossen)**
+  - **Dashboard:** Kennzahlen, Navigation zur Mandantenliste
+  - **Mandantenliste:** Übersicht, klickbare Zeilen, Suche, Statusfilter, Sortierung, URL-Parameter, serverseitiges Laden
+  - **Mandantenakte:** Stammdaten, Ansprechpartner und Status bearbeiten; Validierung; Navigation Dashboard ↔ Liste ↔ Akte
+  - **Datenbank:** RPCs `create_mandant_onboarding` und `replace_organization_contacts`, Server Actions, Migrationen, atomare Ansprechpartner-Updates
 
 ### In Arbeit
 
-- **Sprint 3 – Angebotsmanagement**
-  - Angebote speichern
-  - PDF-Erzeugung
-  - Angebotsliste
+- Noch kein aktiver Sprint (Übergang zu Angebotsmanagement)
 
 ### Als Nächstes
 
-1. **Mandantenakte bearbeiten** – bestehende Mandantendaten in der Akte ändern und speichern
-2. Statuswechsel Interessent → Aktiver Mandant in der Mandantenakte
-3. Plattform-Admin-Login und geschützter Adminbereich
-4. Ersten Kundenbenutzer einladen
+## Angebote
+
+Geplante Unterpunkte:
+
+- Datenmodell
+- Datenbank
+- Angebotsnummern
+- Angebotsliste
+- Angebotsdetailseite
+- Angebotspositionen
+- PDF-Erzeugung
+- Angebotsstatus
+- Angebotsannahme
+- Verknüpfung mit Mandanten
+
+Weitere spätere Schritte (unverändert geplant):
+
+- Plattform-Admin-Login und geschützter Adminbereich
+- Ersten Kundenbenutzer einladen
