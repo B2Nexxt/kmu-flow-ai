@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 const quickActions = [
   { label: "Mandant anlegen", icon: "➕", href: "/admin/mandanten/neu" },
-  { label: "Angebot erstellen", icon: "📄", href: null },
+  { label: "Angebot erstellen", icon: "📄", href: "/admin/angebote/neu" },
   { label: "Beratung planen", icon: "📅", href: null },
   { label: "Module verwalten", icon: "⚙️", href: null },
 ];

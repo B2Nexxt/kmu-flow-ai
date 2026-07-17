@@ -279,6 +279,10 @@ Ein Angebot kann entstehen aus:
 - einer **Prozessanalyse**
 - einer manuellen Erstellung im Plattform-Admin
 
+### Technische Abbildung (V1)
+
+Die PostgreSQL-Tabellen, Constraints und Versionslogik sind in [`docs/angebote-datenmodell.md`](./angebote-datenmodell.md) beschrieben (Migration `supabase/migrations/20260717200000_angebote_v1.sql`).
+
 ---
 
 ## Module
