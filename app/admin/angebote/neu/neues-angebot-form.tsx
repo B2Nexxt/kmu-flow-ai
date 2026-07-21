@@ -218,9 +218,13 @@ function hasFormErrors(errors: FormErrors) {
 
 type NeuesAngebotFormProps = {
   organizations: OrganizationSelectOption[];
+  initialOrganizationId?: string;
 };
 
-export function NeuesAngebotForm({ organizations }: NeuesAngebotFormProps) {
+export function NeuesAngebotForm({
+  organizations,
+  initialOrganizationId,
+}: NeuesAngebotFormProps) {
   const router = useRouter();
   const today = useMemo(() => new Date(), []);
   const defaultAngebotDatum = useMemo(() => toIsoDateLocal(today), [today]);
@@ -229,7 +233,7 @@ export function NeuesAngebotForm({ organizations }: NeuesAngebotFormProps) {
     [today],
   );
 
-  const [organizationId, setOrganizationId] = useState("");
+  const [organizationId, setOrganizationId] = useState(initialOrganizationId ?? "");
   const [angebotDatum, setAngebotDatum] = useState(defaultAngebotDatum);
   const [gueltigBis, setGueltigBis] = useState(defaultGueltigBis);
   const [betreff, setBetreff] = useState("");

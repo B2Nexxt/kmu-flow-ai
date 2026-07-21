@@ -1,10 +1,143 @@
 # Systemarchitektur von KMU Flow AI
 
-Diese Dokumentation beschreibt die technische Gesamtarchitektur von KMU Flow AI. Ziel ist es, den Aufbau der Plattform sowie das Zusammenspiel aller Komponenten zu dokumentieren. Sie dient als Grundlage für zukünftige Erweiterungen und für neue Entwickler.
+Verbindliche **Domänen- und Systemarchitektur** von KMU Flow AI. Dieses Dokument ist die Grundlage für alle weiteren Entwicklungsentscheidungen — fachlich vor technisch.
+
+**Status:** Verbindlich  
+**Bezug:** [`docs/produktarchitektur.md`](./produktarchitektur.md), [`docs/roadmap.md`](./roadmap.md), [`docs/adr/`](./adr/)
 
 ---
 
-# Architekturübersicht
+## Ziel des Systems
+
+KMU Flow AI ist ein **SaaS-ERP** für Beratungsunternehmen und deren Mandanten. Die Plattform bildet den **gesamten Verkaufs- und Betriebsprozess** ab — von der Produktdefinition bis zur Mandantenlizenzierung.
+
+### Verbindlicher Geschäftsprozess
+
+```
+Produkte
+  → Angebote
+  → Verträge
+  → Abonnements
+  → Rechnungen
+  → Lizenzen
+```
+
+**Nicht umgekehrt.** Lizenzen entstehen aus gekauften Produkten, nicht aus manueller Modulauswahl oder isolierter Mandantenkonfiguration.
+
+---
+
+## Domänenmodell
+
+```
+Produkte
+    ↓
+Angebote
+    ↓
+Verträge
+    ↓
+Rechnungen
+    ↓
+Lizenzen
+```
+
+**Plattformmodule** sind technische Funktionen der Software. Sie werden **niemals direkt verkauft** und erscheinen nicht als Angebots- oder Rechnungspositionen. Sie werden über **Paket-Produkte** und **Paketbestandteile** lizenziert.
+
+Detaillierte Produktarchitektur: [`docs/produktarchitektur.md`](./produktarchitektur.md)
+
+---
+
+## Verantwortlichkeiten
+
+### Produkte
+
+| Verantwortung | Beschreibung |
+| --- | --- |
+| Verkaufbare Einheiten | Alles, was in Angeboten und Rechnungen als Position erscheint |
+| Preise | Listenpreis netto, ausschließlich auf Produktebene |
+| Preisart | `einmalig` oder `monatlich` |
+| Beschreibung | Name und ausführliche Produktbeschreibung |
+| Produkttyp | `paket` (mit Plattformmodulen) oder `dienstleistung` (ohne) |
+
+### Plattformmodule
+
+| Verantwortung | Beschreibung |
+| --- | --- |
+| Technische Funktionen | CRM, Angebote, Rechnungen, Dokumente, KI-Assistent, Automatisierungen |
+| Keine Preise | Kein Listenpreis, keine Preisart |
+| Keine Angebotspositionen | Werden nicht verkauft — nur über Pakete lizenziert |
+| Feature-Gates | `technischer_schluessel` + aktive Lizenz |
+
+Katalog: [`docs/plattformmodule-katalog.md`](./plattformmodule-katalog.md)
+
+### Paketbestandteile
+
+| Verantwortung | Beschreibung |
+| --- | --- |
+| Zuordnung | Produkt (Paket) → enthaltene Plattformmodule |
+| Nur Pakete | Dienstleistungen haben keine Paketbestandteile |
+| n:m | Ein Paket kann mehrere Module enthalten; ein Modul kann in mehreren Paketen vorkommen |
+
+### organization_modules
+
+| Verantwortung | Beschreibung |
+| --- | --- |
+| Mandanten-Lizenz | Welche Plattformmodule ein Mandant **tatsächlich nutzen darf** |
+| Laufzeit | `lizenz_status`, `aktiviert_am`, `deaktiviert_am`, `konfiguration` |
+| Keine Stammdaten | Keine duplizierten Namen, Beschreibungen oder Preise |
+
+---
+
+## Datenfluss
+
+```
+Produkt
+    ↓
+Angebot (Positionen mit Produkt-Snapshot)
+    ↓
+Vertrag (Referenz angenommene Angebotsversion)
+    ↓
+Rechnung (Positionen aus Angebot übernommen)
+    ↓
+Aktivierung der Plattformmodule (organization_modules)
+```
+
+**Snapshot-Prinzip:** Angebote und Rechnungen speichern Produktdaten zum Zeitpunkt der Erstellung — Katalogänderungen wirken nicht rückwirkend. Siehe [`docs/adr/ADR-0002-snapshot-prinzip.md`](./adr/ADR-0002-snapshot-prinzip.md).
+
+**Lizenzkette:** Siehe [`docs/adr/ADR-0003-lizenzmodell.md`](./adr/ADR-0003-lizenzmodell.md).
+
+---
+
+## Architekturentscheidungen (ADR)
+
+| ADR | Thema |
+| --- | --- |
+| [ADR-0001](./adr/ADR-0001-produktmodell.md) | Getrenntes Produkt- und Plattformmodell |
+| [ADR-0002](./adr/ADR-0002-snapshot-prinzip.md) | Snapshot-Prinzip für Angebote und Rechnungen |
+| [ADR-0003](./adr/ADR-0003-lizenzmodell.md) | Lizenzmodell über Produkte und Paketbestandteile |
+| [ADR-0004](./adr/ADR-0004-produkt-versionierung.md) | Produkt-Versionierung (Vorbereitung, noch nicht implementiert) |
+
+---
+
+## Entwicklungs-Roadmap
+
+Phasen A–J: [`docs/roadmap.md`](./roadmap.md)
+
+| Phase | Bereich | Status |
+| --- | --- | --- |
+| A | Mandanten | ✅ |
+| B | Angebote | ✅ |
+| C | Produktmanagement | 🚧 |
+| D–J | Verträge, Abonnements, Rechnungen, Lizenzen, Portal, … | geplant |
+
+---
+
+# Technische Plattformarchitektur
+
+Die folgenden Abschnitte beschreiben die **technische Umsetzung** der oben definierten Domänenarchitektur.
+
+---
+
+## Architekturübersicht
 
 Die Plattform folgt einer **modernen Webarchitektur** mit klarer Trennung zwischen Frontend, Backend-Services und zentraler Datenhaltung.
 
@@ -356,10 +489,13 @@ Dieses Prinzip verhindert technische Insellösungen und sichert die Übereinstim
 
 # Zusammenfassung
 
-Diese Systemarchitektur bildet die **technische Grundlage** von KMU Flow AI.
+Diese Systemarchitektur definiert die **verbindliche Domänenarchitektur** und die **technische Plattform** von KMU Flow AI.
 
-Gemeinsam mit den Dokumenten:
+Gemeinsam mit:
 
+- [`docs/produktarchitektur.md`](./produktarchitektur.md) — Produkt-, Plattformmodul- und Lizenzmodell
+- [`docs/roadmap.md`](./roadmap.md) — Entwicklungsphasen A–J
+- [`docs/adr/`](./adr/) — Architekturentscheidungen
 - [`docs/produktkonzept.md`](./produktkonzept.md)
 - [`docs/grundprinzipien.md`](./grundprinzipien.md)
 - [`docs/entscheidungen.md`](./entscheidungen.md)
@@ -367,6 +503,6 @@ Gemeinsam mit den Dokumenten:
 - [`docs/geschaeftsprozesse.md`](./geschaeftsprozesse.md)
 - [`docs/plattformstruktur.md`](./plattformstruktur.md)
 
-definiert sie die **vollständige Architektur** der Plattform – fachlich, organisatorisch und technisch.
+definiert sie die **vollständige Architektur** der Plattform — fachlich, organisatorisch und technisch.
 
-Neue Entwickler sollten mit diesen Dokumenten beginnen, bevor sie neue Module, Datenbankstrukturen oder Integrationen umsetzen.
+Neue Entwickler beginnen mit **Domänenmodell und ADRs**, dann technische Abschnitte dieses Dokuments.

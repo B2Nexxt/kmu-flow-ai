@@ -3,16 +3,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { erstelleNeueAngebotsversionAction } from "@/app/admin/angebote/[id]/actions/erstelle-neue-angebotsversion-action";
+import { freigebenAngebotAction } from "@/app/admin/angebote/[id]/actions/freigeben-angebot-action";
 import { updateAngebotEntwurfAction } from "@/app/admin/angebote/[id]/actions/update-angebot-entwurf-action";
 import {
   calculateAngebotTotals,
   calculatePositionAmounts,
 } from "@/lib/angebote/calculate-angebot-summen";
 import {
+  canCreateNeueAngebotsversion,
+  canFreigebenAngebot,
   getAngebotStatusBadgeClassName,
   getAngebotStatusLabel,
-  isAngebotEntwurfEditable,
+  isAngebotVersionEditable,
 } from "@/lib/angebote/angebot-status";
+import { NEUE_ANGEBOTSVERSION_SUCCESS_MESSAGE } from "@/lib/angebote/erstelle-neue-angebotsversion-action-result";
 import {
   formatAngebotDateLabel,
   type AngebotAkte,
@@ -32,6 +37,10 @@ import { validateUpdateAngebotEntwurf } from "@/lib/angebote/validate-update-ang
 
 const CREATED_SUCCESS_MESSAGE = "Angebot wurde erfolgreich angelegt.";
 const UPDATED_SUCCESS_MESSAGE = "Angebot wurde erfolgreich gespeichert.";
+const FREIGEGEBEN_SUCCESS_MESSAGE =
+  "Das Angebot wurde erfolgreich freigegeben.";
+const FREIGEBEN_CONFIRM_MESSAGE =
+  "Möchten Sie dieses Angebot freigeben?\n\nNach der Freigabe erhält das Angebot seine endgültige Angebotsnummer.\n\nDer Entwurf kann anschließend nicht mehr direkt bearbeitet werden.";
 const AUTO_DISMISS_MS = 6000;
 const STEUERSATZ_OPTIONS = [19, 7, 0] as const;
 
@@ -207,13 +216,23 @@ export function AngebotsAkteView({
   showCreatedInitially,
 }: AngebotsAkteViewProps) {
   const router = useRouter();
-  const canEdit = isAngebotEntwurfEditable(akte.status);
+  const canEdit = isAngebotVersionEditable(akte.version.istEingefroren);
+  const canFreigeben = canFreigebenAngebot(akte.version.istEingefroren);
+  const canCreateNeueVersion = canCreateNeueAngebotsversion(
+    akte.status,
+    akte.version.istEingefroren,
+  );
   const statusLabel = getAngebotStatusLabel(akte.status);
   const empfaenger = akte.version.empfaenger;
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showFreigebenDialog, setShowFreigebenDialog] = useState(false);
+  const [isFreigeben, setIsFreigeben] = useState(false);
+  const [isCreatingNeueVersion, setIsCreatingNeueVersion] = useState(false);
+  const [freigebenError, setFreigebenError] = useState<string | null>(null);
+  const [neueVersionError, setNeueVersionError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [validationMessages, setValidationMessages] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
@@ -439,6 +458,62 @@ export function AngebotsAkteView({
     }
   }
 
+  function handleOpenFreigebenDialog() {
+    setFreigebenError(null);
+    setShowFreigebenDialog(true);
+  }
+
+  function handleCloseFreigebenDialog() {
+    if (isFreigeben) return;
+    setFreigebenError(null);
+    setShowFreigebenDialog(false);
+  }
+
+  async function handleConfirmFreigeben() {
+    if (isFreigeben) return;
+
+    setFreigebenError(null);
+    setIsFreigeben(true);
+
+    try {
+      const result = await freigebenAngebotAction(akte.id);
+
+      if (!result.success) {
+        setFreigebenError(result.error);
+        return;
+      }
+
+      setShowFreigebenDialog(false);
+      setIsEditing(false);
+      setSuccessMessage(FREIGEGEBEN_SUCCESS_MESSAGE);
+      router.refresh();
+    } finally {
+      setIsFreigeben(false);
+    }
+  }
+
+  async function handleCreateNeueVersion() {
+    if (isCreatingNeueVersion) return;
+
+    setNeueVersionError(null);
+    setIsCreatingNeueVersion(true);
+
+    try {
+      const result = await erstelleNeueAngebotsversionAction(akte.id);
+
+      if (!result.success) {
+        setNeueVersionError(result.error);
+        return;
+      }
+
+      setIsEditing(false);
+      setSuccessMessage(NEUE_ANGEBOTSVERSION_SUCCESS_MESSAGE);
+      router.refresh();
+    } finally {
+      setIsCreatingNeueVersion(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <header className="border-b border-zinc-200 bg-white px-8 py-5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -463,6 +538,17 @@ export function AngebotsAkteView({
             </div>
           )}
 
+          {neueVersionError && (
+            <div
+              role="alert"
+              className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900 dark:bg-red-950/40"
+            >
+              <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                {neueVersionError}
+              </p>
+            </div>
+          )}
+
           <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
@@ -480,40 +566,119 @@ export function AngebotsAkteView({
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
+              {canCreateNeueVersion && !isEditing && !isSaving && (
+                <button
+                  type="button"
+                  onClick={handleCreateNeueVersion}
+                  className={buttonPrimaryClassName}
+                  disabled={isFreigeben || isCreatingNeueVersion}
+                >
+                  {isCreatingNeueVersion
+                    ? "Neue Version …"
+                    : "Neue Version erstellen"}
+                </button>
+              )}
               {canEdit &&
-                (isEditing ? (
+                !isEditing &&
+                !isSaving && (
                   <>
                     <button
                       type="button"
-                      onClick={handleCancelEditing}
-                      disabled={isSaving}
-                      className={buttonSecondaryClassName}
-                    >
-                      Abbrechen
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSave}
-                      disabled={isSaving}
+                      onClick={handleStartEditing}
                       className={buttonPrimaryClassName}
+                      disabled={isFreigeben || isCreatingNeueVersion}
                     >
-                      {isSaving ? "Speichern …" : "Speichern"}
+                      Bearbeiten
                     </button>
+                    {canFreigeben && (
+                      <button
+                        type="button"
+                        onClick={handleOpenFreigebenDialog}
+                        className={buttonSecondaryClassName}
+                        disabled={isFreigeben || isCreatingNeueVersion}
+                      >
+                        Freigeben
+                      </button>
+                    )}
                   </>
-                ) : (
+                )}
+              {canEdit && isEditing && (
+                <>
                   <button
                     type="button"
-                    onClick={handleStartEditing}
+                    onClick={handleCancelEditing}
+                    disabled={isSaving}
+                    className={buttonSecondaryClassName}
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isSaving}
                     className={buttonPrimaryClassName}
                   >
-                    Bearbeiten
+                    {isSaving ? "Speichern …" : "Speichern"}
                   </button>
-                ))}
+                </>
+              )}
               <Link href="/admin/angebote" className={buttonSecondaryClassName}>
                 Zur Angebotsliste
               </Link>
             </div>
           </div>
+
+          {showFreigebenDialog && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+              role="presentation"
+              onClick={handleCloseFreigebenDialog}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="freigeben-dialog-title"
+                className="w-full max-w-lg rounded-lg border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h3
+                  id="freigeben-dialog-title"
+                  className="text-lg font-semibold text-zinc-900 dark:text-zinc-50"
+                >
+                  Angebot freigeben
+                </h3>
+                <p className="mt-3 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">
+                  {FREIGEBEN_CONFIRM_MESSAGE}
+                </p>
+                {freigebenError && (
+                  <p
+                    role="alert"
+                    className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+                  >
+                    {freigebenError}
+                  </p>
+                )}
+                <div className="mt-6 flex flex-wrap justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseFreigebenDialog}
+                    disabled={isFreigeben}
+                    className={buttonSecondaryClassName}
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmFreigeben}
+                    disabled={isFreigeben}
+                    className={buttonPrimaryClassName}
+                  >
+                    {isFreigeben ? "Freigeben …" : "Freigeben"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {(saveError || validationMessages.length > 0) && (
             <div

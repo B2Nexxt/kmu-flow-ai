@@ -24,6 +24,8 @@ import {
   getAnsprechpartnerFieldErrors,
   type AnsprechpartnerFieldErrors,
 } from "@/lib/mandanten/validate-onboarding";
+import type { AngebotListItem } from "@/lib/angebote/get-angebote-list";
+import { MandantenAngeboteSection } from "./mandanten-angebote-section";
 
 const CREATED_SUCCESS_MESSAGE = "Mandant wurde erfolgreich angelegt.";
 const UPDATED_SUCCESS_MESSAGE = "Stammdaten wurden erfolgreich gespeichert.";
@@ -51,6 +53,7 @@ const placeholderSections = [
 type MandantenAkteViewProps = {
   akte: MandantAkte;
   showCreatedInitially: boolean;
+  angebote: AngebotListItem[];
 };
 
 type UnternehmensStammdatenForm = UnternehmensStammdatenInput;
@@ -115,6 +118,7 @@ function displayValue(value: string | null | undefined) {
 export function MandantenAkteView({
   akte,
   showCreatedInitially,
+  angebote,
 }: MandantenAkteViewProps) {
   const router = useRouter();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -1175,6 +1179,11 @@ export function MandantenAkteView({
               </dl>
             )}
           </section>
+
+          <MandantenAngeboteSection
+            organizationId={akte.id}
+            angebote={angebote}
+          />
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {placeholderSections.map((title) => (

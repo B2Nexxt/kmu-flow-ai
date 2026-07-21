@@ -1,4 +1,5 @@
 import { getAngebotStatusLabel } from "@/lib/angebote/angebot-status";
+import { pickRelevantAngebotVersion } from "@/lib/angebote/pick-relevant-angebot-version";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export type AngebotAktePosition = {
@@ -33,6 +34,7 @@ export type AngebotAkte = {
   organizationId: string;
   version: {
     versionNr: number;
+    istEingefroren: boolean;
     updatedAt: string;
     angebotDatum: string;
     gueltigBis: string;
@@ -79,21 +81,19 @@ export async function getAngebotAkte(
       return null;
     }
 
-    const { data: version, error: versionError } = await supabase
+    const { data: versionen, error: versionError } = await supabase
       .from("angebot_versionen")
       .select(
-        "id, version_nr, updated_at, angebot_datum, gueltig_bis, betreff, einleitungstext, schlusstext, empfaenger_firmenname, empfaenger_rechtsform, empfaenger_strasse, empfaenger_hausnummer, empfaenger_plz, empfaenger_ort, empfaenger_land, empfaenger_ansprechpartner, empfaenger_email, empfaenger_telefon, empfaenger_umsatzsteuer_id",
+        "id, version_nr, ist_eingefroren, updated_at, angebot_datum, gueltig_bis, betreff, einleitungstext, schlusstext, empfaenger_firmenname, empfaenger_rechtsform, empfaenger_strasse, empfaenger_hausnummer, empfaenger_plz, empfaenger_ort, empfaenger_land, empfaenger_ansprechpartner, empfaenger_email, empfaenger_telefon, empfaenger_umsatzsteuer_id",
       )
-      .eq("angebot_id", angebotId)
-      .eq("ist_eingefroren", false)
-      .order("version_nr", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .eq("angebot_id", angebotId);
 
     if (versionError) {
       console.error("[getAngebotAkte] Version:", versionError);
       return null;
     }
+
+    const version = pickRelevantAngebotVersion(versionen ?? []);
 
     if (!version) {
       return null;
@@ -119,6 +119,7 @@ export async function getAngebotAkte(
       organizationId: angebot.organization_id,
       version: {
         versionNr: version.version_nr,
+        istEingefroren: version.ist_eingefroren,
         updatedAt: version.updated_at,
         angebotDatum: version.angebot_datum,
         gueltigBis: version.gueltig_bis,

@@ -1,0 +1,82 @@
+# Entwicklungs-Roadmap — KMU Flow AI
+
+Überblick über die **Phasen der Plattformentwicklung**. Die Reihenfolge folgt dem verbindlichen Geschäftsprozess: Produkte → Angebote → Verträge → Abonnements → Rechnungen → Lizenzen.
+
+**Status:** Planungsreferenz — **keine Implementierungsverpflichtung für zukünftige Phasen**  
+**Bezug:** [`docs/systemarchitektur.md`](./systemarchitektur.md), [`docs/produktarchitektur.md`](./produktarchitektur.md), [`docs/adr/`](./adr/)
+
+---
+
+## Phasen
+
+| Phase | Bereich | Status | Kurzbeschreibung |
+| --- | --- | --- | --- |
+| **A** | Mandanten | ✅ | Mandantenanlage, Onboarding-Assistent, Mandantenakte |
+| **B** | Angebote | ✅ | Angebotsmodul V1: Versionen, Positionen, Freigabe, Mandantenbezug |
+| **C** | Produktmanagement | 🚧 | Plattformmodule, Produkte, Paketbestandteile — Phase 0 fachlich; Schema folgt |
+| **D** | Verträge | ⬜ | Verträge auf Basis angenommener Angebotsversionen |
+| **E** | Abonnements | ⬜ | Laufende Verträge, monatliche Produkte, Abrechnungszyklen |
+| **F** | Rechnungen | ⬜ | Rechnungen aus Angeboten/Abonnements; Snapshot-Positionen |
+| **G** | Lizenzverwaltung | ⬜ | `organization_modules` aus Paket-Produkten; Feature-Gates |
+| **H** | Kundenportal | ⬜ | Operative Mandanten-Arbeitsplattform |
+| **I** | Automatisierungen | ⬜ | Workflows mit manueller Freigabe bei kritischen Schritten |
+| **J** | PDF | ⬜ | Angebots-, Vertrags- und Rechnungs-PDF |
+
+**Legende:** ✅ abgeschlossen (V1) · 🚧 in Arbeit · ⬜ geplant
+
+---
+
+## Abhängigkeiten zwischen Phasen
+
+```
+Phase A (Mandanten) ✅
+    │
+    ▼
+Phase B (Angebote) ✅
+    │
+    ▼
+Phase C (Produktmanagement) 🚧  ← aktueller Fokus
+    │
+    ├──► Phase D (Verträge)
+    │         │
+    │         ├──► Phase E (Abonnements)
+    │         │
+    │         └──► Phase G (Lizenzverwaltung)
+    │
+    ├──► Phase F (Rechnungen)  ← benötigt Produkte + Angebote
+    │
+    └──► Phase J (PDF)         ← parallel zu D/F möglich
+
+Phase H (Kundenportal)  ← benötigt Phase G (Lizenzen)
+Phase I (Automatisierungen)  ← benötigt Phase H + G
+```
+
+---
+
+## Phase C — Detail (aktuell)
+
+| Teil | Status | Dokumentation |
+| --- | --- | --- |
+| Fachliche Katalogdefinition (Phase 0) | teilweise | [`docs/plattformmodule-katalog.md`](./plattformmodule-katalog.md), [`docs/produktkatalog-fachlich.md`](./produktkatalog-fachlich.md) |
+| Architekturentscheidungen | dokumentiert | [`docs/produktarchitektur.md`](./produktarchitektur.md), [`docs/adr/`](./adr/) |
+| Schema / Migration | ausstehend | nach fachlicher Freigabe |
+| Angebots-Anbindung an Produkte | ausstehend | Phase C → Anschluss an Phase B |
+| Zwischenlösung `leistungsmodule` | bestehend | nicht weiter ausbauen |
+
+---
+
+## Verweise
+
+| Dokument | Inhalt |
+| --- | --- |
+| [`docs/projektplan.md`](./projektplan.md) | Detaillierter Projektplan und Meilensteine |
+| [`docs/systemarchitektur.md`](./systemarchitektur.md) | Verbindliche Domänen- und Systemarchitektur |
+| [`docs/geschaeftsprozesse.md`](./geschaeftsprozesse.md) | Fachliche Prozessbeschreibungen |
+
+---
+
+## Änderungshistorie
+
+| Datum | Änderung |
+| --- | --- |
+| 2026-07-21 | Erstversion — Phasen A–J |

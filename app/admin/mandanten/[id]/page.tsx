@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { MandantenAkteView } from "./mandanten-akte-view";
+import { getMandantAngeboteList } from "@/lib/angebote/get-mandant-angebote-list";
 import { getMandantAkte } from "@/lib/mandanten/get-mandant-akte";
 
 type MandantenAktePageProps = {
@@ -13,7 +14,10 @@ export default async function MandantenAktePage({
 }: MandantenAktePageProps) {
   const { id } = await params;
   const { created } = await searchParams;
-  const akte = await getMandantAkte(id);
+  const [akte, angebote] = await Promise.all([
+    getMandantAkte(id),
+    getMandantAngeboteList(id),
+  ]);
 
   if (!akte) {
     notFound();
@@ -23,6 +27,7 @@ export default async function MandantenAktePage({
     <MandantenAkteView
       akte={akte}
       showCreatedInitially={created === "true"}
+      angebote={angebote}
     />
   );
 }

@@ -19,6 +19,41 @@ const ANGEBOT_STATUS_LABELS: Record<AngebotStatusCode, string> = {
   abgelaufen: "Abgelaufen",
 };
 
+export const ANGEBOT_STATUS_OPTIONS = [
+  { code: ANGEBOT_STATUS.ENTWURF, label: ANGEBOT_STATUS_LABELS.entwurf },
+  { code: ANGEBOT_STATUS.FREIGEGEBEN, label: ANGEBOT_STATUS_LABELS.freigegeben },
+  { code: ANGEBOT_STATUS.VERSENDET, label: ANGEBOT_STATUS_LABELS.versendet },
+  { code: ANGEBOT_STATUS.ANGENOMMEN, label: ANGEBOT_STATUS_LABELS.angenommen },
+  { code: ANGEBOT_STATUS.ABGELEHNT, label: ANGEBOT_STATUS_LABELS.abgelehnt },
+  { code: ANGEBOT_STATUS.ABGELAUFEN, label: ANGEBOT_STATUS_LABELS.abgelaufen },
+] as const;
+
+export type AngebotListStatusFilter = "all" | AngebotStatusCode;
+
+export function isAngebotStatusCode(value: string): value is AngebotStatusCode {
+  return value in ANGEBOT_STATUS_LABELS;
+}
+
+export function parseAngebotListStatusFilter(
+  value: string | undefined,
+): AngebotListStatusFilter {
+  if (value && isAngebotStatusCode(value)) {
+    return value;
+  }
+
+  return "all";
+}
+
+export function getAngebotListStatusFilterLabel(
+  statusFilter: AngebotListStatusFilter,
+) {
+  if (statusFilter === "all") {
+    return "Alle";
+  }
+
+  return getAngebotStatusLabel(statusFilter);
+}
+
 export function getAngebotStatusLabel(status: string) {
   if (status in ANGEBOT_STATUS_LABELS) {
     return ANGEBOT_STATUS_LABELS[status as AngebotStatusCode];
@@ -48,4 +83,16 @@ export function getAngebotStatusBadgeClassName(status: string) {
 
 export function isAngebotEntwurfEditable(status: string) {
   return status === ANGEBOT_STATUS.ENTWURF;
+}
+
+export function isAngebotVersionEditable(istEingefroren: boolean) {
+  return !istEingefroren;
+}
+
+export function canCreateNeueAngebotsversion(status: string, istEingefroren: boolean) {
+  return istEingefroren && status !== ANGEBOT_STATUS.ENTWURF;
+}
+
+export function canFreigebenAngebot(istEingefroren: boolean) {
+  return !istEingefroren;
 }

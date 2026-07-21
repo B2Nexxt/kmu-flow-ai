@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getAdminDashboardAngeboteCount } from "@/lib/angebote/get-admin-dashboard-angebote-count";
 import { getAdminDashboardStats } from "@/lib/mandanten/get-admin-dashboard-stats";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +17,10 @@ const statCardClassName =
 const statCardLinkClassName = `${statCardClassName} block transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50`;
 
 export default async function AdminPage() {
-  const { gesamt, mandanten, interessenten, inaktiv } = await getAdminDashboardStats();
+  const [{ gesamt, mandanten, interessenten, inaktiv }, angeboteCount] =
+    await Promise.all([getAdminDashboardStats(), getAdminDashboardAngeboteCount()]);
 
   const otherStats = [
-    { label: "Angebote", value: 0 },
     { label: "Verträge", value: 0 },
     { label: "Aktive Abonnements", value: 0 },
   ] as const;
@@ -56,6 +57,15 @@ export default async function AdminPage() {
             <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
               Aktive Mandanten: {mandanten} · Interessenten: {interessenten} ·
               Inaktiv: {inaktiv}
+            </p>
+          </Link>
+
+          <Link href="/admin/angebote" className={statCardLinkClassName}>
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              Angebote
+            </p>
+            <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+              {angeboteCount}
             </p>
           </Link>
 

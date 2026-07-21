@@ -7,8 +7,21 @@ export const dynamic = "force-dynamic";
 const buttonSecondaryClassName =
   "inline-flex h-11 items-center justify-center rounded-lg border border-zinc-200 px-6 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800";
 
-export default async function NeuesAngebotPage() {
+type NeuesAngebotPageProps = {
+  searchParams: Promise<{ organizationId?: string }>;
+};
+
+export default async function NeuesAngebotPage({
+  searchParams,
+}: NeuesAngebotPageProps) {
+  const { organizationId } = await searchParams;
   const organizations = await getOrganizationSelectOptions();
+  const normalizedOrganizationId = organizationId?.trim();
+  const initialOrganizationId =
+    normalizedOrganizationId &&
+    organizations.some((organization) => organization.id === normalizedOrganizationId)
+      ? normalizedOrganizationId
+      : undefined;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -37,7 +50,10 @@ export default async function NeuesAngebotPage() {
             </Link>
           </div>
 
-          <NeuesAngebotForm organizations={organizations} />
+          <NeuesAngebotForm
+            organizations={organizations}
+            initialOrganizationId={initialOrganizationId}
+          />
         </div>
       </main>
     </div>
