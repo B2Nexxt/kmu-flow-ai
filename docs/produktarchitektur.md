@@ -3,7 +3,7 @@
 Diese Dokumentation beschreibt das **Ziel-Produktmodell** von KMU Flow AI: die fachliche Trennung zwischen **Plattformfunktionen** (Lizenzierung) und **verkaufbaren Produkten** (Angebote, Rechnungen). Sie ist die Architektur-Referenz für alle künftigen Schema-, RPC- und UI-Arbeiten in diesem Bereich.
 
 **Status:** Verbindliche Architekturreferenz — Phase 0 (fachliche Katalogdefinition) teilweise abgeschlossen; **noch keine Migration, kein SQL, keine RPC, keine UI**  
-**Bezug:** [`docs/systemarchitektur.md`](./systemarchitektur.md), [`docs/roadmap.md`](./roadmap.md), [`docs/adr/`](./adr/), [`docs/plattformmodule-katalog.md`](./plattformmodule-katalog.md), [`docs/produktkatalog-fachlich.md`](./produktkatalog-fachlich.md), [`docs/produktkonzept.md`](./produktkonzept.md), [`docs/angebote-modulkatalog.md`](./angebote-modulkatalog.md), [`docs/module-zusammenfuehrung-mapping.md`](./module-zusammenfuehrung-mapping.md), [`docs/angebote-datenmodell.md`](./angebote-datenmodell.md)
+**Bezug:** [`docs/systemarchitektur.md`](./systemarchitektur.md), [`docs/fachkonzept/09-modularitaet-und-produktstrategie.md`](./fachkonzept/09-modularitaet-und-produktstrategie.md), [`docs/roadmap.md`](./roadmap.md), [`docs/adr/`](./adr/), [`docs/plattformmodule-katalog.md`](./plattformmodule-katalog.md), [`docs/produktkatalog-fachlich.md`](./produktkatalog-fachlich.md), [`docs/produktkonzept.md`](./produktkonzept.md), [`docs/angebote-modulkatalog.md`](./angebote-modulkatalog.md), [`docs/module-zusammenfuehrung-mapping.md`](./module-zusammenfuehrung-mapping.md), [`docs/angebote-datenmodell.md`](./angebote-datenmodell.md)
 
 ---
 
@@ -65,6 +65,16 @@ Vollständige Stammdaten: [`docs/plattformmodule-katalog.md`](./plattformmodule-
 | Angebote/Rechnungen snapshotten Produktdaten | [ADR-0002](./adr/ADR-0002-snapshot-prinzip.md) |
 | Lizenzen aus Paket-Produkten, nicht aus Onboarding-Checkboxen | [ADR-0003](./adr/ADR-0003-lizenzmodell.md) |
 | Produkt-Versionierung später vorgesehen | [ADR-0004](./adr/ADR-0004-produkt-versionierung.md) |
+
+### Abgrenzung: Drei Modulebenen
+
+| Ebene | Dokumentation |
+| --- | --- |
+| **Produkte / Plattformmodule** (SaaS-Vertrieb, Lizenz) | Dieses Dokument, ADR-0001 |
+| **Fachmodule** (operative Domänen im Handwerksbetrieb) | [`docs/fachkonzept/09-modularitaet-und-produktstrategie.md`](./fachkonzept/09-modularitaet-und-produktstrategie.md), ADR-0012 |
+| **Operatives Fachkonzept gesamt** | [`docs/fachkonzept/`](./fachkonzept/) |
+
+Mapping Fachmodul ↔ Plattformmodul: **noch nicht verbindlich festgelegt**.
 
 ---
 
@@ -542,6 +552,7 @@ Siehe [`docs/produktkatalog-fachlich.md`](./produktkatalog-fachlich.md) (Freigab
 
 | Dokument | Inhalt |
 | --- | --- |
+| [`docs/fachkonzept/`](./fachkonzept/) | Operatives Fachkonzept Handwerksplattform |
 | [`docs/systemarchitektur.md`](./systemarchitektur.md) | Verbindliche Domänen- und Systemarchitektur |
 | [`docs/roadmap.md`](./roadmap.md) | Entwicklungsphasen A–J |
 | [`docs/adr/`](./adr/) | Architekturentscheidungen (ADR-0001–0004) |
@@ -561,3 +572,4 @@ Siehe [`docs/produktkatalog-fachlich.md`](./produktkatalog-fachlich.md) (Freigab
 | 2026-07-21 | Erstversion — Ziel-Produktarchitektur |
 | 2026-07-21 | Phase 0: Redundanzregel (Teilmenge), Onboarding-Ziel, Zwischenlösung, Katalog-Verweise |
 | 2026-07-21 | Verbindliche Architekturentscheidungen; Verweise Systemarchitektur, ADRs, Roadmap |
+| 2026-07-26 | Drei Modulebenen; Verweis Fachkonzept |

@@ -3,7 +3,7 @@
 Überblick über die **Phasen der Plattformentwicklung**. Die Reihenfolge folgt dem verbindlichen Geschäftsprozess: Produkte → Angebote → Verträge → Abonnements → Rechnungen → Lizenzen.
 
 **Status:** Planungsreferenz — **keine Implementierungsverpflichtung für zukünftige Phasen**  
-**Bezug:** [`docs/systemarchitektur.md`](./systemarchitektur.md), [`docs/produktarchitektur.md`](./produktarchitektur.md), [`docs/adr/`](./adr/)
+**Bezug:** [`docs/systemarchitektur.md`](./systemarchitektur.md), [`docs/fachkonzept/`](./fachkonzept/), [`docs/produktarchitektur.md`](./produktarchitektur.md), [`docs/adr/`](./adr/)
 
 ---
 
@@ -18,7 +18,7 @@
 | **E** | Abonnements | ⬜ | Laufende Verträge, monatliche Produkte, Abrechnungszyklen |
 | **F** | Rechnungen | ⬜ | Rechnungen aus Angeboten/Abonnements; Snapshot-Positionen |
 | **G** | Lizenzverwaltung | ⬜ | `organization_modules` aus Paket-Produkten; Feature-Gates |
-| **H** | Kundenportal | ⬜ | Operative Mandanten-Arbeitsplattform |
+| **H** | Operative Kundenplattform | ⬜ | Handwerks-Arbeitsplattform unter **`/`** — [`docs/fachkonzept/`](./fachkonzept/), ADR-0014 — **noch nicht implementiert** |
 | **I** | Automatisierungen | ⬜ | Workflows mit manueller Freigabe bei kritischen Schritten |
 | **J** | PDF | ⬜ | Angebots-, Vertrags- und Rechnungs-PDF |
 
@@ -47,7 +47,7 @@ Phase C (Produktmanagement) 🚧  ← aktueller Fokus
     │
     └──► Phase J (PDF)         ← parallel zu D/F möglich
 
-Phase H (Kundenportal)  ← benötigt Phase G (Lizenzen)
+Phase H (Operative Kundenplattform)  ← benötigt Phase G (Lizenzen); eigene Tabellen (ADR-0014); Adressen/Gebäude ADR-0015
 Phase I (Automatisierungen)  ← benötigt Phase H + G
 ```
 
@@ -65,6 +65,23 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 
 ---
 
+## Phase H — Vorbereitung (fachlich, noch nicht implementiert)
+
+| Entscheidung | Status | ADR |
+| --- | --- | --- |
+| Domänentrennung `/admin` vs `/` | ✅ dokumentiert | ADR-0014 |
+| Kunden/Objekte/Vorgänge (Zielmodell) | ✅ dokumentiert | ADR-0013 |
+| Mehrere Gebäude pro Adresse (O2) | ✅ **`adressen` 1:n `gebaeude`** | ADR-0015 |
+| Mandantenbezogene Adressen (O3) | ✅ **`adressen.mandant_id` Pflicht** | ADR-0015 |
+| Gebäudearten / Einheiten / Archivierung / RLS / Normalisierung | ✅ dokumentiert | ADR-0016 |
+| B1 Normalisierung (DB-Trigger, kein pgcrypto) | ✅ **entschieden** | ADR-0016, Dokument 12 |
+| B2 RLS M1 (ENABLE only, Service Role) | ✅ **entschieden** | ADR-0016, Dokument 12 |
+| B3 Gebäudebezeichnung (nullable, Server später) | ✅ **entschieden** | ADR-0016, Dokument 12 |
+| Erste operative Migration | ⬜ DDL ausstehend | [`12-spezifikation-migration-1-operative-stammdaten.md`](./fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md) — **Spezifikation finalisiert** |
+| Auth-/Mitgliedschafts-Sprint | ⬜ vor operativer UI | Voraussetzung für RLS-Policies |
+
+---
+
 ## Verweise
 
 | Dokument | Inhalt |
@@ -72,6 +89,10 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | [`docs/projektplan.md`](./projektplan.md) | Detaillierter Projektplan und Meilensteine |
 | [`docs/systemarchitektur.md`](./systemarchitektur.md) | Verbindliche Domänen- und Systemarchitektur |
 | [`docs/geschaeftsprozesse.md`](./geschaeftsprozesse.md) | Fachliche Prozessbeschreibungen |
+| [`docs/fachkonzept/`](./fachkonzept/) | Verbindliches Fachkonzept operative Handwerksplattform |
+| [`docs/adr/ADR-0014-trennung-saas-admin-und-operative-kundenplattform.md`](./adr/ADR-0014-trennung-saas-admin-und-operative-kundenplattform.md) | Domänentrennung `/admin` vs `/` |
+| [`docs/adr/ADR-0015-mandantenbezogene-adressen-und-mehrere-gebaeude.md`](./adr/ADR-0015-mandantenbezogene-adressen-und-mehrere-gebaeude.md) | O2/O3 Adressen und Gebäude |
+| [`docs/fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md`](./fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md) | Migration 1 Stammdaten (Spezifikation) |
 
 ---
 
@@ -80,3 +101,9 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | Datum | Änderung |
 | --- | --- |
 | 2026-07-21 | Erstversion — Phasen A–J |
+| 2026-07-26 | Verweis Fachkonzept, Phase H präzisiert |
+| 2026-07-26 | ADR-0014 — Phase H = operative Kundenplattform unter `/` |
+| 2026-07-26 | ADR-0015 — O2/O3 entschieden; Phase-H-Vorbereitung ergänzt |
+| 2026-07-26 | ADR-0016 — strukturelle Grundlagen erste operative Migration |
+| 2026-07-26 | Dokument 12 — Spezifikation Migration 1 Stammdaten |
+| 2026-07-26 | B1–B3 finalisiert; ADR-0016 und Dokument 12 bereit für DDL |

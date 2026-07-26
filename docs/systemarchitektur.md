@@ -3,13 +3,22 @@
 Verbindliche **Domänen- und Systemarchitektur** von KMU Flow AI. Dieses Dokument ist die Grundlage für alle weiteren Entwicklungsentscheidungen — fachlich vor technisch.
 
 **Status:** Verbindlich  
-**Bezug:** [`docs/produktarchitektur.md`](./produktarchitektur.md), [`docs/roadmap.md`](./roadmap.md), [`docs/adr/`](./adr/)
+**Bezug:** [`docs/fachkonzept/`](./fachkonzept/), [`docs/produktarchitektur.md`](./produktarchitektur.md), [`docs/roadmap.md`](./roadmap.md), [`docs/adr/`](./adr/)
 
 ---
 
 ## Ziel des Systems
 
-KMU Flow AI ist ein **SaaS-ERP** für Beratungsunternehmen und deren Mandanten. Die Plattform bildet den **gesamten Verkaufs- und Betriebsprozess** ab — von der Produktdefinition bis zur Mandantenlizenzierung.
+KMU Flow AI ist ein **SaaS-ERP** mit zwei sich ergänzenden Ebenen:
+
+| Ebene | Beschreibung | Route | Dokumentation |
+| --- | --- | --- | --- |
+| **Plattform-Admin / SaaS-Betrieb** | Mandantenvertrieb, Angebote an Mandanten, Lizenzierung | **`/admin/**`** | Dieses Dokument, [`docs/produktarchitektur.md`](./produktarchitektur.md), ADR-0014 |
+| **Operative Arbeitsplattform** | Tagesgeschäft des Handwerksbetriebs (Mandant) | **`/`** (App außerhalb `/admin`) | [`docs/fachkonzept/`](./fachkonzept/), ADR-0014 |
+
+**Verbindlich:** Zwei **getrennte Fachdomänen** — gemeinsame technische Infrastruktur (Supabase, Auth, UI-Bausteine), **keine** gemeinsamen Fachtabellen. Siehe [`docs/adr/ADR-0014-trennung-saas-admin-und-operative-kundenplattform.md`](./adr/ADR-0014-trennung-saas-admin-und-operative-kundenplattform.md).
+
+Die Plattform bildet den **gesamten Verkaufs- und Betriebsprozess** ab — von der Produktdefinition bis zur Mandantenlizenzierung und zum Handwerks-Alltag.
 
 ### Verbindlicher Geschäftsprozess
 
@@ -115,6 +124,16 @@ Aktivierung der Plattformmodule (organization_modules)
 | [ADR-0002](./adr/ADR-0002-snapshot-prinzip.md) | Snapshot-Prinzip für Angebote und Rechnungen |
 | [ADR-0003](./adr/ADR-0003-lizenzmodell.md) | Lizenzmodell über Produkte und Paketbestandteile |
 | [ADR-0004](./adr/ADR-0004-produkt-versionierung.md) | Produkt-Versionierung (Vorbereitung, noch nicht implementiert) |
+| [ADR-0005](./adr/ADR-0005-rollen-steuern-dashboards.md) | Rollen steuern Dashboards, nicht Geschäftsprozesse |
+| [ADR-0006](./adr/ADR-0006-informationsaufnahme-statt-dateneingabe.md) | Informationsaufnahme statt Dateneingabe |
+| [ADR-0007](./adr/ADR-0007-kunden-und-objektmodell.md) | Kunden- und Objektmodell |
+| [ADR-0008](./adr/ADR-0008-automatische-zuordnungslogik.md) | Automatische Zuordnungslogik (Anfragen) |
+| [ADR-0009](./adr/ADR-0009-unternehmensstandards-und-ausnahmen.md) | Unternehmensstandards und Ausnahmen |
+| [ADR-0010](./adr/ADR-0010-interne-kalkulation-und-externe-darstellung.md) | Interne Kalkulation vs. externe Darstellung |
+| [ADR-0011](./adr/ADR-0011-unternehmenswissen-als-ki-grundlage.md) | Unternehmenswissen als KI-Grundlage |
+| [ADR-0012](./adr/ADR-0012-modulare-fachprozesse.md) | Modulare Fachprozesse auf gemeinsamer Plattform |
+| [ADR-0013](./adr/ADR-0013-technisches-kunden-objekt-vorgangsmodell.md) | Technisches Kunden-, Objekt- und Vorgangsmodell (Ziel) |
+| [ADR-0014](./adr/ADR-0014-trennung-saas-admin-und-operative-kundenplattform.md) | Trennung SaaS-Admin (`/admin`) und operative Kundenplattform (`/`) |
 
 ---
 
@@ -191,10 +210,14 @@ Das Frontend von KMU Flow AI basiert auf **Next.js** mit dem **App Router**.
 
 ### Struktur
 
-Das Frontend bildet die beiden Hauptbereiche der Plattform ab:
+Das Frontend bildet die **zwei getrennten Fachbereiche** ab:
 
-- **Plattform-Admin** unter `/admin`
-- **Mandantenbereich** unter den App-Routen wie `/dashboard`, `/kunden`, `/angebote` usw.
+| Bereich | Route | Domäne | Status |
+| --- | --- | --- | --- |
+| **Plattform-Admin** | `/admin/**` | SaaS-Administration (Mandanten, Plattform-Angebote, …) | Ist ✅ (Mandanten, Angebote) |
+| **Operative Arbeitsplattform** | `/`, `/dashboard`, `/kunden`, `/angebote`, … | Handwerks-Tagesgeschäft | Ist: teils Platzhalter; Ziel: Fachkonzept |
+
+**Routing-Regel (ADR-0014):** Admin- und operative Komponenten dürfen **nicht stillschweigend dieselben** Server Actions oder Fach-Queries verwenden. Gemeinsame UI-Bausteine sind erlaubt.
 
 Öffentliche Seiten wie die Homepage und spätere Terminbuchung sind vom geschützten Anwendungsbereich getrennt.
 
@@ -225,23 +248,23 @@ Serverseitige Logik kann zunächst über Next.js Server Components, Route Handle
 
 Die zentrale Datenbasis ist **PostgreSQL** über Supabase.
 
-Alle Module greifen auf **dieselbe Datenbank** zu. Dadurch bleiben Kunden, Angebote, Verträge, Rechnungen, Dokumente und Projekte im gemeinsamen fachlichen Kontext verfügbar.
+Admin- und operative Domäne nutzen **dieselbe Datenbank-Instanz** (gemeinsame Infrastruktur), aber **getrennte Fachtabellen und Prozesse** — keine Uminterpretation von Admin-Tabellen für operative Handwerksdaten (ADR-0014).
 
-### Wichtigste Domänen
+### Domänen in der Datenbank
 
-- Mandanten
-- Unternehmen
-- Standorte
-- Benutzer
-- Verträge
-- Angebote
-- Rechnungen
-- Dokumente
-- Projekte
-- Prozessanalysen
-- Automatisierungen
+| Domäne | Beispiel-Tabellen (Ist/Ziel) |
+| --- | --- |
+| **SaaS-Administration** | `organizations`, `angebote`, `angebot_versionen`, `angebot_positionen`, `ansprechpartner`, `organization_modules`, … |
+| **Operative Kundenplattform (Ziel)** | `kunden`, `adressen`, `gebaeude`, `vorgaenge`, … — **noch nicht implementiert** |
+| **Legacy (unbenutzt)** | `customers` (0 Zeilen, 0 Code) — nicht weiterentwickeln |
 
-Die fachliche Struktur dieser Domänen ist in [`docs/datenmodell.md`](./datenmodell.md) beschrieben. Die technische Tabellenabbildung erfolgt separat auf Basis dieses fachlichen Modells.
+### Wichtigste Admin-Domänen (Ist)
+
+- Mandanten (`organizations`)
+- Plattform-Angebote (`angebote`, …)
+- Ansprechpartner, Bankverbindungen, Modulzuordnungen
+
+Operative Domänen (Kunden, Endkundenangebote, Baustellen, operative Rechnungen, …) sind im [`docs/fachkonzept/`](./fachkonzept/) beschrieben — **noch nicht als Tabellen implementiert**.
 
 ### Mandanten-Onboarding (Phase 2)
 
@@ -493,6 +516,7 @@ Diese Systemarchitektur definiert die **verbindliche Domänenarchitektur** und d
 
 Gemeinsam mit:
 
+- [`docs/fachkonzept/`](./fachkonzept/) — Operatives Fachkonzept (Handwerk)
 - [`docs/produktarchitektur.md`](./produktarchitektur.md) — Produkt-, Plattformmodul- und Lizenzmodell
 - [`docs/roadmap.md`](./roadmap.md) — Entwicklungsphasen A–J
 - [`docs/adr/`](./adr/) — Architekturentscheidungen
