@@ -64,6 +64,7 @@ const notes = {
 };
 let passed = true;
 let beforeSnap = null;
+let orphanBefore = null;
 
 function record(key, ok, detail = "") {
   if (key in results) results[key] = { ok, detail };
@@ -126,41 +127,104 @@ function trackSeq(ids, mandantId, jahr) {
   }
 }
 
-async function cleanup(ids) {
-  if (ids.anfrageeingaenge.length) {
-    await service.from("anfrageeingaenge").delete().in("id", ids.anfrageeingaenge);
+function uniqueIds(list) {
+  return [...new Set(list.filter(Boolean))];
+}
+
+async function countTestOrphans() {
+  const { data: orgs } = await service
+    .from("organizations")
+    .select("id")
+    .like("name", "__test_rpc_ae_%");
+  const orgIds = (orgs ?? []).map((o) => o.id);
+  if (!orgIds.length) {
+    return { orgs: 0, anfrageeingaenge: 0, sequenzen: 0 };
   }
-  for (const row of ids.eingangsnummer_sequenzen) {
-    await service
+  const { count: aeCount } = await service
+    .from("anfrageeingaenge")
+    .select("*", { count: "exact", head: true })
+    .in("mandant_id", orgIds);
+  const { count: seqCount } = await service
+    .from("eingangsnummer_sequenzen")
+    .select("*", { count: "exact", head: true })
+    .in("mandant_id", orgIds);
+  return {
+    orgs: orgIds.length,
+    anfrageeingaenge: aeCount ?? 0,
+    sequenzen: seqCount ?? 0,
+    orgIds,
+  };
+}
+
+/** Reste früherer Läufe: nur eindeutig benannte Test-Organisationen + deren Daten */
+async function cleanupOrphans() {
+  const orphan = await countTestOrphans();
+  if (!orphan.orgIds?.length) return orphan;
+
+  await service.from("anfrageeingaenge").delete().in("mandant_id", orphan.orgIds);
+  await service.from("eingangsnummer_sequenzen").delete().in("mandant_id", orphan.orgIds);
+  await service.from("organizations").delete().in("id", orphan.orgIds);
+  return orphan;
+}
+
+async function verifyCleanup(ids) {
+  const mandantIds = uniqueIds(ids.orgs);
+  let aeCount = 0;
+  let seqCount = 0;
+  if (mandantIds.length) {
+    const { count: cAe } = await service
+      .from("anfrageeingaenge")
+      .select("*", { count: "exact", head: true })
+      .in("mandant_id", mandantIds);
+    const { count: cSeq } = await service
       .from("eingangsnummer_sequenzen")
-      .delete()
-      .eq("mandant_id", row.mandant_id)
-      .eq("jahr", row.jahr);
+      .select("*", { count: "exact", head: true })
+      .in("mandant_id", mandantIds);
+    aeCount = cAe ?? 0;
+    seqCount = cSeq ?? 0;
   }
-  if (ids.vorgang_beteiligte.length) {
-    await service.from("vorgang_beteiligte").delete().in("id", ids.vorgang_beteiligte);
+  const { count: cOrg } = await service
+    .from("organizations")
+    .select("*", { count: "exact", head: true })
+    .like("name", "__test_rpc_ae_%");
+  return {
+    orgs: cOrg ?? 0,
+    anfrageeingaenge: aeCount,
+    sequenzen: seqCount,
+  };
+}
+
+async function cleanup(ids) {
+  const mandantIds = uniqueIds(ids.orgs);
+  const eingangIds = uniqueIds(ids.anfrageeingaenge);
+
+  // 1. Anfrageeingänge: gesammelte IDs + alle Testmandanten (fängt Lücken auf)
+  if (eingangIds.length) {
+    await service.from("anfrageeingaenge").delete().in("id", eingangIds);
   }
-  if (ids.vorgaenge.length) {
-    await service.from("vorgaenge").delete().in("id", ids.vorgaenge);
+  if (mandantIds.length) {
+    await service.from("anfrageeingaenge").delete().in("mandant_id", mandantIds);
   }
-  if (ids.beziehungen.length) {
-    await service.from("kunden_objekt_beziehungen").delete().in("id", ids.beziehungen);
+
+  // 2. Sequenzen für alle Testmandanten
+  if (mandantIds.length) {
+    await service.from("eingangsnummer_sequenzen").delete().in("mandant_id", mandantIds);
+  } else {
+    for (const row of ids.eingangsnummer_sequenzen) {
+      await service
+        .from("eingangsnummer_sequenzen")
+        .delete()
+        .eq("mandant_id", row.mandant_id)
+        .eq("jahr", row.jahr);
+    }
   }
-  if (ids.einheiten.length) {
-    await service.from("einheiten").delete().in("id", ids.einheiten);
-  }
-  if (ids.gebaeude.length) {
-    await service.from("gebaeude").delete().in("id", ids.gebaeude);
-  }
-  if (ids.adressen.length) {
-    await service.from("adressen").delete().in("id", ids.adressen);
-  }
-  if (ids.kunden.length) {
-    await service.from("kunden").delete().in("id", ids.kunden);
-  }
-  for (const orgId of ids.orgs) {
+
+  // 3. Temporäre Organizations
+  for (const orgId of mandantIds) {
     await service.from("organizations").delete().eq("id", orgId);
   }
+
+  // 4. Temporärer Auth-User
   if (ids.authUserId) {
     await service.auth.admin.deleteUser(ids.authUserId);
   }
@@ -195,6 +259,7 @@ async function main() {
   };
 
   try {
+    orphanBefore = await cleanupOrphans();
     beforeSnap = await snapshotCounts();
 
     const orgNumA = await createTestOrg(ts, "numA");
@@ -714,6 +779,8 @@ async function main() {
     record("rollback", t24Ok, notes.t24Einschraenkung);
   } finally {
     await cleanup(ids);
+    await cleanupOrphans();
+    const cleanupVerify = await verifyCleanup(ids);
 
     if (beforeSnap) {
       const afterSnap = await snapshotCounts();
@@ -734,30 +801,39 @@ async function main() {
       }
     }
 
-    const { count: cOrg } = await service
-      .from("organizations")
-      .select("*", { count: "exact", head: true })
-      .like("name", "__test_rpc_ae_%");
-    const { count: cAe } = await service
-      .from("anfrageeingaenge")
-      .select("*", { count: "exact", head: true })
-      .like("eingangsnummer", "AE-%");
     const cleanupOk =
-      (cOrg ?? 0) === 0 &&
-      (cAe ?? 0) === 0;
-    record("cleanup", cleanupOk, `orgs=${cOrg ?? 0}, ae-prefix=${cAe ?? 0}`);
-  }
-
-  const problems = [];
-  for (const [k, v] of Object.entries(results)) {
-    if (v && !v.ok) problems.push(`${k}: ${v.detail}`);
-  }
-  for (const [k, v] of Object.entries(extra)) {
-    if (v && !v.ok) problems.push(`${k}: ${v.detail}`);
+      cleanupVerify.orgs === 0 &&
+      cleanupVerify.anfrageeingaenge === 0 &&
+      cleanupVerify.sequenzen === 0;
+    record(
+      "cleanup",
+      cleanupOk,
+      `orgs=${cleanupVerify.orgs}, ae(mandant)=${cleanupVerify.anfrageeingaenge}, seq(mandant)=${cleanupVerify.sequenzen}`,
+    );
   }
 
   console.log(
-    JSON.stringify({ passed, notes, results, extra, problems }, null, 2),
+    JSON.stringify(
+      {
+        passed,
+        notes,
+        orphanBefore,
+        results,
+        extra,
+        problems: (() => {
+          const problems = [];
+          for (const [k, v] of Object.entries(results)) {
+            if (v && !v.ok) problems.push(`${k}: ${v.detail}`);
+          }
+          for (const [k, v] of Object.entries(extra)) {
+            if (v && !v.ok) problems.push(`${k}: ${v.detail}`);
+          }
+          return problems;
+        })(),
+      },
+      null,
+      2,
+    ),
   );
   process.exit(passed ? 0 : 1);
 }
