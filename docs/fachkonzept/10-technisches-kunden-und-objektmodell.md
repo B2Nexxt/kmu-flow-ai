@@ -272,7 +272,7 @@ Einheitlicher **Vorgangskontext** für Anfrage, Besichtigung, Angebot, Projekt, 
 
 - **Genau ein Objektkontext** pro Vorgang (`gebaeude` + ggf. `einheit`).
 - **Mehrere Beteiligte** mit unterschiedlichen Rollen — **einzige** Abbildung von Anfragender/Auftraggeber/Rechnungsempfänger.
-- **Unvollständige Nachricht** ohne Objekt/Kunde/Titel → **kein Vorgang** — später Anfrageeingang (nicht M2).
+- **Unvollständige Nachricht** ohne Objekt/Kunde/Titel → **kein Vorgang** — [`14-spezifikation-migration-3-anfrageeingang.md`](./14-spezifikation-migration-3-anfrageeingang.md) (Migration 3).
 - Vorläufige Kunden (`kundenstatus=vorlaeufig`) erlaubt; **keine** Platzhalterkunden.
 - **Personenbezogene Kommunikation** hängt am **Vorgang** und **Kundenkontext** — nicht ungeprüft am Gebäude „mitlesbar“ für neue Mieter.
 - **Gleiche Anschrift ≠ gemeinsame Vorgangshistorie** — Vorgänge sind kunden- und vorgangsbezogen verknüpft.

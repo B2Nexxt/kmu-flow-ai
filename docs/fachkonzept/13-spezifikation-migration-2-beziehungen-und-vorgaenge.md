@@ -764,7 +764,7 @@ organizations (SaaS-Mandant)
 | B7 | `beendet_am` für abgeschlossen + abgebrochen | ✅ **Entschieden** |
 | — | `vorgangsnummer`-Sequenz RPC | ⬜ Nach M2 |
 | — | Auth-/Mitgliedschafts-Sprint | ⬜ Vor UI |
-| O1 | Tabelle Anfrageeingang | ⬜ M3+ |
+| O1 | Tabelle Anfrageeingang | ✅ Spezifikation M3 — [`14-spezifikation-migration-3-anfrageeingang.md`](./14-spezifikation-migration-3-anfrageeingang.md), ADR-0018 |
 | O2 | Kunden-Merge-Workflow | ⬜ Post-M2 |
 | O3 | Feingranulare Vorgangssichtbarkeit | ⬜ Post-M2 |
 

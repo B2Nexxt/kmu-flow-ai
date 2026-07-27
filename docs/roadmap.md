@@ -78,7 +78,8 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | B2 RLS M1 (ENABLE only, Service Role) | ✅ **entschieden** | ADR-0016, Dokument 12 |
 | B3 Gebäudebezeichnung (nullable, Server später) | ✅ **entschieden** | ADR-0016, Dokument 12 |
 | Erste operative Migration (M1) | ✅ angewendet & getestet | [`12-spezifikation-migration-1-operative-stammdaten.md`](./fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md) |
-| Migration 2 Beziehungen/Vorgänge | ⬜ DDL bereit, nicht ausgeführt | [`13-…`](./fachkonzept/13-spezifikation-migration-2-beziehungen-und-vorgaenge.md), `20260717290000_operative_beziehungen_vorgaenge_v1.sql` |
+| Migration 2 Beziehungen/Vorgänge | ✅ angewendet & getestet | [`13-…`](./fachkonzept/13-spezifikation-migration-2-beziehungen-und-vorgaenge.md), `20260717290000_operative_beziehungen_vorgaenge_v1.sql` |
+| Migration 3 Anfrageeingang | ⬜ DDL bereit, nicht ausgeführt | [`14-spezifikation-migration-3-anfrageeingang.md`](./fachkonzept/14-spezifikation-migration-3-anfrageeingang.md), `20260717300000_operativer_anfrageeingang_v1.sql`, ADR-0018 |
 | Auth-/Mitgliedschafts-Sprint | ⬜ vor operativer UI | Voraussetzung für RLS-Policies |
 
 ---
@@ -111,3 +112,6 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | 2026-07-27 | M1 angewendet; Dokument 13 + ADR-0017 Migration 2 |
 | 2026-07-27 | M2-Blocker B1–B7 finalisiert (Mieter, Composite-FK, kundenstatus) |
 | 2026-07-27 | Migration 2 DDL `20260717290000_operative_beziehungen_vorgaenge_v1.sql` |
+| 2026-07-27 | Dokument 14 + ADR-0018 — Spezifikation Migration 3 Anfrageeingang |
+| 2026-07-27 | M3-Blocker B1–B4 finalisiert — bereit für DDL |
+| 2026-07-27 | Migration 3 DDL `20260717300000_operativer_anfrageeingang_v1.sql` |
