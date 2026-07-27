@@ -79,7 +79,9 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | B3 Gebäudebezeichnung (nullable, Server später) | ✅ **entschieden** | ADR-0016, Dokument 12 |
 | Erste operative Migration (M1) | ✅ angewendet & getestet | [`12-spezifikation-migration-1-operative-stammdaten.md`](./fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md) |
 | Migration 2 Beziehungen/Vorgänge | ✅ angewendet & getestet | [`13-…`](./fachkonzept/13-spezifikation-migration-2-beziehungen-und-vorgaenge.md), `20260717290000_operative_beziehungen_vorgaenge_v1.sql` |
-| Migration 3 Anfrageeingang | ⬜ DDL bereit, nicht ausgeführt | [`14-spezifikation-migration-3-anfrageeingang.md`](./fachkonzept/14-spezifikation-migration-3-anfrageeingang.md), `20260717300000_operativer_anfrageeingang_v1.sql`, ADR-0018 |
+| Migration 3 Anfrageeingang | ✅ angewendet & getestet | [`14-spezifikation-migration-3-anfrageeingang.md`](./fachkonzept/14-spezifikation-migration-3-anfrageeingang.md), `20260717300000_operativer_anfrageeingang_v1.sql`, ADR-0018 |
+| M3.1a Nummernsequenzen + FK-Umbenennung | ✅ angewendet & getestet | `20260717310000_anfrageeingang_nummernsequenzen_v1.sql`, ADR-0019, `scripts/test-anfrageeingang-nummernsequenzen-migration.mjs` |
+| M3.1b Anfrageeingang RPCs | ✅ 4/4 Kern-RPCs (create/update/bestaetige/erstelle) angewendet & getestet | ADR-0019, `scripts/test-erstelle-vorgang-aus-anfrageeingang-rpc.mjs` |
 | Auth-/Mitgliedschafts-Sprint | ⬜ vor operativer UI | Voraussetzung für RLS-Policies |
 
 ---
@@ -115,3 +117,15 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | 2026-07-27 | Dokument 14 + ADR-0018 — Spezifikation Migration 3 Anfrageeingang |
 | 2026-07-27 | M3-Blocker B1–B4 finalisiert — bereit für DDL |
 | 2026-07-27 | Migration 3 DDL `20260717300000_operativer_anfrageeingang_v1.sql` |
+| 2026-07-27 | Migration 3 angewendet & getestet (T1–T30) |
+| 2026-07-27 | Dokument 15 + ADR-0019 — Spezifikation M3.1 Serverlogik |
+| 2026-07-27 | Migration 3.1a DDL `20260717310000_anfrageeingang_nummernsequenzen_v1.sql` |
+| 2026-07-27 | Migration 3.1a angewendet & getestet (T1–T20) |
+| 2026-07-27 | Migration 3.1b (Teil 1) RPC `create_anfrageeingang` DDL bereit |
+| 2026-07-27 | RPC `create_anfrageeingang` angewendet & getestet (T1–T24) |
+| 2026-07-27 | Migration 3.1b (Teil 2) RPC `update_anfrageeingang_bewertung` DDL bereit |
+| 2026-07-27 | RPC `update_anfrageeingang_bewertung` angewendet & getestet (T1–T30) |
+| 2026-07-27 | Migration 3.1b (Teil 3) RPC `bestaetige_anfrageeingang_zuordnung` DDL bereit |
+| 2026-07-28 | RPC `bestaetige_anfrageeingang_zuordnung` angewendet & getestet (T1–T34) |
+| 2026-07-28 | Migration 3.1b (Teil 4) RPC `erstelle_vorgang_aus_anfrageeingang` DDL bereit |
+| 2026-07-28 | RPC `erstelle_vorgang_aus_anfrageeingang` angewendet & getestet (T1–T38) |

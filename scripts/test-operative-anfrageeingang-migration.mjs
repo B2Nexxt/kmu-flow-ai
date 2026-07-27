@@ -474,7 +474,7 @@ async function main() {
         eingangsnummer: `M3-V1-${ts}`,
         kanal: "email",
         status: "in_vorgang_ueberfuehrt",
-        erzeugter_vorgang_id: vA.id,
+        zugeordneter_vorgang_id: vA.id,
         beendet_am: beendet,
       })
       .select("id")
@@ -486,7 +486,7 @@ async function main() {
         eingangsnummer: `M3-V2-${ts}`,
         kanal: "telefon",
         status: "in_vorgang_ueberfuehrt",
-        erzeugter_vorgang_id: vA.id,
+        zugeordneter_vorgang_id: vA.id,
         beendet_am: beendet,
       })
       .select("id")
@@ -501,7 +501,7 @@ async function main() {
       eingangsnummer: `M3-VBAD-${ts}`,
       kanal: "email",
       status: "analysiert",
-      erzeugter_vorgang_id: vA.id,
+      zugeordneter_vorgang_id: vA.id,
     });
     record("T16", isExpectedDbError(t16Err), t16Err?.message ?? "unexpected ok");
 
