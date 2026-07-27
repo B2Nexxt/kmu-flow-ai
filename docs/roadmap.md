@@ -77,7 +77,8 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | B1 Normalisierung (DB-Trigger, kein pgcrypto) | ✅ **entschieden** | ADR-0016, Dokument 12 |
 | B2 RLS M1 (ENABLE only, Service Role) | ✅ **entschieden** | ADR-0016, Dokument 12 |
 | B3 Gebäudebezeichnung (nullable, Server später) | ✅ **entschieden** | ADR-0016, Dokument 12 |
-| Erste operative Migration | ⬜ DDL ausstehend | [`12-spezifikation-migration-1-operative-stammdaten.md`](./fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md) — **Spezifikation finalisiert** |
+| Erste operative Migration (M1) | ✅ angewendet & getestet | [`12-spezifikation-migration-1-operative-stammdaten.md`](./fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md) |
+| Migration 2 Beziehungen/Vorgänge | ⬜ DDL bereit, nicht ausgeführt | [`13-…`](./fachkonzept/13-spezifikation-migration-2-beziehungen-und-vorgaenge.md), `20260717290000_operative_beziehungen_vorgaenge_v1.sql` |
 | Auth-/Mitgliedschafts-Sprint | ⬜ vor operativer UI | Voraussetzung für RLS-Policies |
 
 ---
@@ -107,3 +108,6 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | 2026-07-26 | ADR-0016 — strukturelle Grundlagen erste operative Migration |
 | 2026-07-26 | Dokument 12 — Spezifikation Migration 1 Stammdaten |
 | 2026-07-26 | B1–B3 finalisiert; ADR-0016 und Dokument 12 bereit für DDL |
+| 2026-07-27 | M1 angewendet; Dokument 13 + ADR-0017 Migration 2 |
+| 2026-07-27 | M2-Blocker B1–B7 finalisiert (Mieter, Composite-FK, kundenstatus) |
+| 2026-07-27 | Migration 2 DDL `20260717290000_operative_beziehungen_vorgaenge_v1.sql` |

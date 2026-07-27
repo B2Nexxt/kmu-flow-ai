@@ -130,4 +130,8 @@ Automatische Zuordnung folgt ADR-0008 (Zwei-Merkmale-Regel, MFH-Eindeutigkeit, N
 
 **Objektgrundlagen V1:** [`docs/adr/ADR-0016-operative-objektgrundlagen-rls-archivierung.md`](./ADR-0016-operative-objektgrundlagen-rls-archivierung.md)
 
+**Objektbeziehungen vs. Vorgangsbeteiligte:** [`docs/adr/ADR-0017-dauerhafte-objektbeziehungen-und-vorgangsbeteiligte.md`](./ADR-0017-dauerhafte-objektbeziehungen-und-vorgangsbeteiligte.md)
+
+**Migration 2 Spezifikation:** [`docs/fachkonzept/13-spezifikation-migration-2-beziehungen-und-vorgaenge.md`](../fachkonzept/13-spezifikation-migration-2-beziehungen-und-vorgaenge.md)
+
 ---

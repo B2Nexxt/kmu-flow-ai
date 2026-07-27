@@ -68,7 +68,7 @@ Rechtlicher oder fachlicher **Geschäftspartner** des Handwerksbetriebs — nat�
 
 | Kategorie | Felder (konzeptionell) |
 | --- | --- |
-| Identität | `id`, `mandant_id`, `kundennummer`, `typ` (privat \| firma \| …) |
+| Identität | `id`, `mandant_id`, `kundennummer`, `kundenstatus` (`vorlaeufig` \| `bestaetigt`, M2) |
 | Stammdaten | Name/Firmenname, Rechtsform, USt-ID, Steuernummer |
 | Kontakt | E-Mail(s), Telefonnummer(n) — normalisiert für Suche |
 | Meta | `aktiv`, `created_at`, `updated_at` |
@@ -226,16 +226,16 @@ Explizite, zeitlich begrenzte **Beziehung** zwischen Kunde und Objekt bzw. Einhe
 | `kunde_id` | FK → `kunden` |
 | `gebaeude_id` | FK → `gebaeude` |
 | `einheit_id` | optional — NULL = gesamtes Gebäude |
-| `rolle` | eigentuemer \| mieter \| hausverwaltung \| auftraggeber \| ansprechpartner \| rechnungsempfaenger |
-| `gueltig_ab` | Start der Beziehung |
-| `gueltig_bis` | Ende (nullable = unbefristet aktiv) |
-| `aktiv` | boolean |
-| `quelle` | manuell \| telefon \| anfrage \| import \| … |
-| `bestaetigt_am` / `bestaetigt_von` | Nachweis manueller Bestätigung |
+| `rolle` | eigentuemer \| mieter \| hausverwaltung \| nutzer \| sonstiges — **keine** vorgangsbezogenen Rollen (ADR-0017) |
+| `gueltig_ab` / `gueltig_bis` | **date** — fachlicher Zeitraum |
+| `aktiv` | administrativ nutzbar; **nicht** automatisch aus `current_date` |
+| `quelle` | manuell \| import \| system \| … |
+| `bestaetigt_am` | Nachweis manueller Bestätigung |
 
 ### Verbindliche Regeln
 
-- Mehrere aktive Beziehungen möglich (z. B. Eigentümer + Hausverwaltung am selben Objekt).
+- Mehrere aktive Beziehungen möglich — **mehrere Mieter/Nutzer** pro Einheit (WG), **mehrere Eigentümer**.
+- **Keine** doppelte identische aktive Beziehung (gleicher Kunde + Rolle + Objekt).
 - **Mieterwechsel:** neue Zeile für neuen Mieter; alte Beziehung `gueltig_bis` setzen — **Einheit unverändert**.
 - **Eigentümerwechsel:** separate fachliche Behandlung von Mieterwechsel (siehe Datenschutz).
 
@@ -247,33 +247,33 @@ Explizite, zeitlich begrenzte **Beziehung** zwischen Kunde und Objekt bzw. Einhe
 
 Einheitlicher **Vorgangskontext** für Anfrage, Besichtigung, Angebot, Projekt, Rechnung — mit eindeutiger Objekt- und Beteiligtenzuordnung.
 
-### Felder (Ziel, Kern)
+### Felder (Ziel, Kern — Migration 2)
 
 | Feld | Beschreibung |
 | --- | --- |
 | `id`, `mandant_id`, `vorgangsnummer` | |
-| `typ` | anfrage \| besichtigung \| angebot \| projekt \| rechnung \| … |
-| `status` | prozessspezifisch |
+| `vorgangstyp` | anfrage \| folgeanfrage \| notfall \| service \| reklamation \| sonstiges |
+| `status` | neu \| in_klaerung \| … \| abgeschlossen \| abgebrochen |
 | `gebaeude_id` | **Pflicht** — Objektkontext |
-| `einheit_id` | optional; **Pflicht bei MFH-Wohnungsvorgängen**; **NULL** = gesamtes Gebäude |
-| `auftraggeber_kunde_id` | Kunde mit Rolle Auftraggeber für diesen Vorgang |
-| `rechnungsempfaenger_kunde_id` | optional abweichend |
-| `anfragender_kunde_id` / Kontakt | wer die Anfrage stellte (kann ≠ Auftraggeber) |
-| `parent_vorgang_id` | optional — Folgeanfrage, Angebot aus Besichtigung |
+| `einheit_id` | optional; Composite-FK mit `gebaeude_id` → `einheiten` |
+| `parent_vorgang_id` | optional — Folgeanfrage, Reklamation |
+| `beendet_am` | Abschluss **oder** Abbruch |
+| **Kein** `kunde_id` | Rollen nur über `vorgang_beteiligte` (ADR-0017) |
 
-### Vorgang beteiligte (`vorgang_beteiligte`)
+### Vorgang beteiligte (`vorgang_beteiligte`) — Source of Truth
 
 | Feld | Beschreibung |
 | --- | --- |
-| `vorgang_id` | |
-| `kunde_id` oder externe Kontaktreferenz | |
-| `rolle` | anfragender \| auftraggeber \| ansprechpartner \| rechnungsempfaenger \| eigentuemer \| … |
-| `fachliche_hinweise` | optional |
+| `vorgang_id`, `kunde_id`, `rolle` | |
+| `ist_hauptbeteiligter` | max. einer pro Rolle |
+| `notizen` | optional |
 
 ### Verbindliche Regeln
 
 - **Genau ein Objektkontext** pro Vorgang (`gebaeude` + ggf. `einheit`).
-- **Mehrere Beteiligte** mit unterschiedlichen Rollen erlaubt.
+- **Mehrere Beteiligte** mit unterschiedlichen Rollen — **einzige** Abbildung von Anfragender/Auftraggeber/Rechnungsempfänger.
+- **Unvollständige Nachricht** ohne Objekt/Kunde/Titel → **kein Vorgang** — später Anfrageeingang (nicht M2).
+- Vorläufige Kunden (`kundenstatus=vorlaeufig`) erlaubt; **keine** Platzhalterkunden.
 - **Personenbezogene Kommunikation** hängt am **Vorgang** und **Kundenkontext** — nicht ungeprüft am Gebäude „mitlesbar“ für neue Mieter.
 - **Gleiche Anschrift ≠ gemeinsame Vorgangshistorie** — Vorgänge sind kunden- und vorgangsbezogen verknüpft.
 
@@ -292,8 +292,8 @@ Einheitlicher **Vorgangskontext** für Anfrage, Besichtigung, Angebot, Projekt, 
 | Gebäude → Einheiten | 1:n | MFH: viele Einheiten |
 | Einheit → Kunden (via Beziehung) | n:m | über Zeit verschiedene Mieter |
 | Vorgang → Objektkontext | n:1 | genau ein Gebäude (+ optional Einheit) |
-| Vorgang → Beteiligte | 1:n | verschiedene Rollen |
-| Vorgang → Kunde (Auftraggeber) | n:1 | pro Vorgang eindeutiger Auftraggeber |
+| Vorgang → Beteiligte | 1:n | **Source of Truth** für Rollen |
+| Auftraggeber pro Vorgang | über `vorgang_beteiligte` | **nicht** Feld auf `vorgaenge` |
 | Gleiche Adresse → gleicher Vorgang | **keine** | Vorgänge nicht über Adresse teilen |
 
 ---
@@ -308,8 +308,8 @@ Einheitlicher **Vorgangskontext** für Anfrage, Besichtigung, Angebot, Projekt, 
 | `adressen` | Musterstraße 12 |
 | `gebaeude` | EFH, `gebaeudeart = einfamilienhaus`, ohne Bezeichnung |
 | `einheiten` | — (optional leer) |
-| `kunden_objekt_beziehungen` | Müller, Eigentümer + Auftraggeber, gesamtes Gebäude |
-| `vorgaenge` | Anfrage → `gebaeude_id`, `auftraggeber_kunde_id` = Müller |
+| `kunden_objekt_beziehungen` | Müller, Eigentümer, gesamtes Gebäude |
+| `vorgaenge` | Anfrage → `gebaeude_id`; Beteiligter Müller = `auftraggeber` |
 
 ### 2. Kunde mit mehreren Gebäuden
 
@@ -317,7 +317,7 @@ Einheitlicher **Vorgangskontext** für Anfrage, Besichtigung, Angebot, Projekt, 
 | --- | --- |
 | `kunden` | Schmidt GmbH |
 | Zwei `gebaeude` | Werkstraße 1 (Halle), Gartenweg 5 (Büro) |
-| Zwei `kunden_objekt_beziehungen` | Schmidt → beide Objekte, Rolle Auftraggeber |
+| Zwei `kunden_objekt_beziehungen` | Schmidt → beide Objekte (objektbezogene Rolle) |
 | `vorgaenge` | je Vorgang **ein** referenziertes Gebäude |
 
 ### 3. Zwei Mieter im MFH, unterschiedliche Wohnungen
