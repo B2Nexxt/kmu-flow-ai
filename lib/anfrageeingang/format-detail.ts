@@ -1,5 +1,7 @@
 import { canShowVerwerfeAnfrageeingangAction } from "./can-verwerfe-anfrageeingang";
 import { formatAnfrageeingangBetreff, formatAnfrageeingangEmpfangenAm } from "./format-display";
+import { mapAnfrageeingangKundendaten } from "./format-kundendaten";
+import { mapAnfrageeingangZuordnungsbewertung, parseFehlendeAngaben } from "./format-zuordnungsbewertung";
 import {
   getAnfrageeingangDringlichkeitLabel,
   getAnfrageeingangKanalLabel,
@@ -55,17 +57,26 @@ export function formatAnfrageeingangJsonValue(value: unknown): string | null {
 }
 
 export function normalizeFehlendeAngaben(value: unknown): string[] {
-  if (!Array.isArray(value) || value.length === 0) return [];
-  return value.map((item) =>
-    typeof item === "string" ? item : JSON.stringify(item, null, 2),
-  );
+  return parseFehlendeAngaben(value);
 }
 
 export function mapAnfrageeingangDetailRow(
   row: AnfrageeingangDetailRow,
 ): AnfrageeingangDetailViewModel {
-  const fehlendeAngabenItems = normalizeFehlendeAngaben(row.fehlende_angaben);
-  const strukturierteDatenEmpty = isEmptyJsonObject(row.strukturierte_daten);
+  const kundendaten = mapAnfrageeingangKundendaten({
+    strukturierte_daten: row.strukturierte_daten,
+    absender_name: row.absender_name,
+    absender_email: row.absender_email,
+    absender_telefon: row.absender_telefon,
+  });
+  const zuordnungsbewertung = mapAnfrageeingangZuordnungsbewertung({
+    confidence_score: row.confidence_score,
+    zuordnungsstatus: row.zuordnungsstatus,
+    vollstaendigkeitsstatus: row.vollstaendigkeitsstatus,
+    zuordnungsgrund: row.zuordnungsgrund,
+    zuordnungskandidaten: row.zuordnungskandidaten,
+    fehlende_angaben: row.fehlende_angaben,
+  });
 
   return {
     id: row.id,
@@ -84,23 +95,14 @@ export function mapAnfrageeingangDetailRow(
     zuletztBearbeitetAmLabel: formatAnfrageeingangOptionalDate(row.zuletzt_bearbeitet_am),
     beendetAmLabel: formatAnfrageeingangOptionalDate(row.beendet_am),
     rohinhaltLabel: formatAnfrageeingangRohinhalt(row.rohinhalt),
-    absenderNameLabel: formatAnfrageeingangOptionalText(row.absender_name),
-    absenderEmail: row.absender_email?.trim() || null,
-    absenderTelefon: row.absender_telefon?.trim() || null,
+    kundendaten,
+    zuordnungsbewertung,
     zuordnungsstatusLabel: getAnfrageeingangZuordnungsstatusLabel(row.zuordnungsstatus),
     vollstaendigkeitsstatusLabel: getAnfrageeingangVollstaendigkeitLabel(
       row.vollstaendigkeitsstatus,
     ),
     manuellePruefungLabel: formatAnfrageeingangJaNein(row.manuelle_pruefung_erforderlich),
     confidenceScoreLabel: formatAnfrageeingangConfidenceScore(row.confidence_score),
-    strukturierteDatenJson: strukturierteDatenEmpty
-      ? null
-      : formatAnfrageeingangJsonValue(row.strukturierte_daten),
-    strukturierteDatenEmpty,
-    zuordnungsgrundJson: formatAnfrageeingangJsonValue(row.zuordnungsgrund),
-    zuordnungskandidatenJson: formatAnfrageeingangJsonValue(row.zuordnungskandidaten),
-    fehlendeAngabenItems,
-    fehlendeAngabenEmpty: fehlendeAngabenItems.length === 0,
     kundeZugeordnet: row.zugeordnet_kunde_id !== null,
     gebaeudeZugeordnet: row.zugeordnet_gebaeude_id !== null,
     einheitZugeordnet: row.zugeordnet_einheit_id !== null,

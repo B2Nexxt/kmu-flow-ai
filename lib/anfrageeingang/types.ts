@@ -1,3 +1,16 @@
+import type {
+  AnfrageeingangKundendatenDisplay,
+  KundendatenAnsprechpartnerDisplay,
+  KundendatenContactValue,
+} from "./format-kundendaten";
+import type {
+  AnfrageeingangZuordnungsbewertungDisplay,
+  ZuordnungskandidatDisplay,
+} from "./format-zuordnungsbewertung";
+
+export type { AnfrageeingangKundendatenDisplay, KundendatenAnsprechpartnerDisplay, KundendatenContactValue };
+export type { AnfrageeingangZuordnungsbewertungDisplay, ZuordnungskandidatDisplay };
+
 export type AnfrageeingangStatus =
   | "neu"
   | "analysiert"
@@ -121,19 +134,12 @@ export type AnfrageeingangDetailViewModel = {
   zuletztBearbeitetAmLabel: string;
   beendetAmLabel: string;
   rohinhaltLabel: string;
-  absenderNameLabel: string;
-  absenderEmail: string | null;
-  absenderTelefon: string | null;
+  kundendaten: AnfrageeingangKundendatenDisplay;
+  zuordnungsbewertung: AnfrageeingangZuordnungsbewertungDisplay;
   zuordnungsstatusLabel: string;
   vollstaendigkeitsstatusLabel: string;
   manuellePruefungLabel: string;
   confidenceScoreLabel: string | null;
-  strukturierteDatenJson: string | null;
-  strukturierteDatenEmpty: boolean;
-  zuordnungsgrundJson: string | null;
-  zuordnungskandidatenJson: string | null;
-  fehlendeAngabenItems: string[];
-  fehlendeAngabenEmpty: boolean;
   kundeZugeordnet: boolean;
   gebaeudeZugeordnet: boolean;
   einheitZugeordnet: boolean;

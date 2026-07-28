@@ -1,8 +1,8 @@
 export const CREATE_ANFRAGEEINGANG_KANAL_REQUIRED_MESSAGE =
-  "Bitte wählen Sie einen gültigen Kanal.";
+  "Bitte wählen Sie einen Eingangskanal.";
 
 export const CREATE_ANFRAGEEINGANG_INHALT_REQUIRED_MESSAGE =
-  "Bitte geben Sie mindestens Betreff, Inhalt oder Absenderangaben an.";
+  "Bitte geben Sie mindestens Betreff, Inhalt oder Kontaktdaten an.";
 
 export const CREATE_ANFRAGEEINGANG_EMAIL_INVALID_MESSAGE =
   "Bitte geben Sie eine gültige E-Mail-Adresse an.";

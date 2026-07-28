@@ -61,6 +61,7 @@ export async function createAnfrageeingangAction(
       p_absender_email: input.absender_email,
       p_absender_telefon: input.absender_telefon,
       p_empfangen_am: input.empfangen_am,
+      p_strukturierte_daten: input.strukturierte_daten,
     });
 
     if (error) {

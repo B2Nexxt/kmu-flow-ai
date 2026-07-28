@@ -105,10 +105,11 @@ test("T10 JSON-Felder werden als formatiertes JSON dargestellt", () => {
   assert.equal(formatAnfrageeingangJsonValue([]), null);
 });
 
-test("T11 leere JSON-Objekte und Arrays", () => {
-  assert.equal(isEmptyJsonObject({}), true);
-  assert.equal(isEmptyJsonObject({ x: 1 }), false);
-  assert.deepEqual(normalizeFehlendeAngaben([]), []);
+test("T11 fehlende Angaben werden fachlich normalisiert", () => {
+  assert.deepEqual(normalizeFehlendeAngaben(["Adresse", { feld: "plz" }]), [
+    "Adresse",
+    "PLZ",
+  ]);
 });
 
 test("T12 confidence_score als Prozentwert", () => {
@@ -131,8 +132,10 @@ test("T1 gültiger eigener Eingang wird gemappt", () => {
   assert.equal(detail.betreffLabel, "Fenster undicht");
   assert.equal(detail.statusLabel, "Neu");
   assert.equal(detail.manuellePruefungLabel, "Ja");
-  assert.equal(detail.fehlendeAngabenEmpty, false);
-  assert.equal(detail.strukturierteDatenEmpty, false);
+  assert.equal(detail.zuordnungsbewertung.isEmpty, false);
+  assert.equal(detail.zuordnungsbewertung.confidenceLabel, "85,4 %");
+  assert.deepEqual(detail.zuordnungsbewertung.grundPunkte, ["Kein Match"]);
+  assert.ok(detail.zuordnungsbewertung.fehlendeAngabenItems.includes("Adresse"));
 });
 
 test("T15 Detail-Read nutzt authenticated SSR-Client, keine Service Role", () => {
