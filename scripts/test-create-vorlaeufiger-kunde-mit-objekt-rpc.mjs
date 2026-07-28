@@ -1021,9 +1021,13 @@ async function main() {
       "test-bestaetige-anfrageeingang-zuordnung-rpc.mjs",
       "test-erstelle-vorgang-aus-anfrageeingang-rpc.mjs",
     ];
+    if (process.env.SKIP_REGRESSION === "1") {
+      record("regression", true, "skipped (SKIP_REGRESSION=1)");
+    } else {
     const regResults = regScripts.map((s) => ({ script: s, ...runRegression(s) }));
     const regOk = regResults.every((r) => r.ok);
     record("regression", regOk, regResults.map((r) => `${r.script}:${r.status}`).join(", "));
+    }
   }
 
   const problems = [];

@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: "📊" },
-  { href: "/kunden", label: "Kunden", icon: "👥" },
-  { href: "/angebote", label: "Angebote", icon: "📄" },
-  { href: "/rechnungen", label: "Rechnungen", icon: "🧾" },
-  { href: "/ki-assistent", label: "KI-Assistent", icon: "🤖" },
-  { href: "/einstellungen", label: "Einstellungen", icon: "⚙️" },
+  { href: "/dashboard", label: "Dashboard", icon: "📊", exact: true },
+  { href: "/anfrageeingang", label: "Anfrageeingang", icon: "📥", exact: false },
+  { href: "/vorgaenge", label: "Vorgänge", icon: "📋", exact: false },
+  { href: "/kunden", label: "Kunden", icon: "👥", exact: false },
+  { href: "/ki-assistent", label: "KI-Assistent", icon: "🤖", exact: false },
+  { href: "/einstellungen", label: "Einstellungen", icon: "⚙️", exact: false },
 ];
 
 export default function Sidebar() {
@@ -24,7 +24,9 @@ export default function Sidebar() {
       </div>
       <nav className="flex flex-col gap-1 p-3">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link

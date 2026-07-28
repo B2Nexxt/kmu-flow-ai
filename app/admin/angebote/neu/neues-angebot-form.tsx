@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { createAngebotAction } from "@/app/(app)/angebote/actions/create-angebot-action";
+import { createAngebotAction } from "@/app/(app)/(protected)/angebote/actions/create-angebot-action";
 import { OrganizationSelect } from "@/app/admin/angebote/neu/organization-select";
 import { buildEmpfaengerFromOrganization } from "@/lib/angebote/build-empfaenger-from-organization";
 import type { CreateAngebotInput } from "@/lib/angebote/create-angebot-input";

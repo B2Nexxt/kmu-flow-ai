@@ -81,8 +81,15 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | Migration 2 Beziehungen/Vorgänge | ✅ angewendet & getestet | [`13-…`](./fachkonzept/13-spezifikation-migration-2-beziehungen-und-vorgaenge.md), `20260717290000_operative_beziehungen_vorgaenge_v1.sql` |
 | Migration 3 Anfrageeingang | ✅ angewendet & getestet | [`14-spezifikation-migration-3-anfrageeingang.md`](./fachkonzept/14-spezifikation-migration-3-anfrageeingang.md), `20260717300000_operativer_anfrageeingang_v1.sql`, ADR-0018 |
 | M3.1a Nummernsequenzen + FK-Umbenennung | ✅ angewendet & getestet | `20260717310000_anfrageeingang_nummernsequenzen_v1.sql`, ADR-0019, `scripts/test-anfrageeingang-nummernsequenzen-migration.mjs` |
-| M3.1b Anfrageeingang RPCs | ✅ 4/4 Kern-RPCs (create/update/bestaetige/erstelle) angewendet & getestet | ADR-0019, `scripts/test-erstelle-vorgang-aus-anfrageeingang-rpc.mjs` |
-| Auth-/Mitgliedschafts-Sprint | ⬜ vor operativer UI | Voraussetzung für RLS-Policies |
+| M3.1b Anfrageeingang RPCs | ✅ **8/8 abgeschlossen** (create/update/bestaetige/erstelle/ordne/verwerfe/archiviere/reaktiviere) angewendet & getestet | ADR-0019, `scripts/test-reaktiviere-anfrageeingang-rpc.mjs` |
+| Operative UI-Skeletons | ✅ `/vorgaenge` (ohne Live-Daten); **`/anfrageeingang` Live-Liste + Detail** | Navigation `(app)/sidebar.tsx` |
+| Auth-/Mandantenkontext (Spezifikation) | ✅ dokumentiert | ADR-0020, Fachkonzept 16 |
+| `organization_members` operativ V1 | ✅ Migration + Tests | `20260717410000_…`, `scripts/test-organization-members-operativ-v1-migration.mjs` |
+| `organization_members` Self-Read-RLS | ✅ Migration + Tests | `20260717420000_…`, `scripts/test-organization-members-self-rls-v1-migration.mjs` |
+| Operative Auth-Server-Helfer | ✅ implementiert | `lib/operative-auth/`, `(protected)`-Layout |
+| Operative Login-UI | ✅ `/login` | `loginAction`, `@supabase/ssr` |
+| Mandantenauswahl-UI | ✅ `/mandant-waehlen` | `selectActiveMandantAction`, Logout eingebunden |
+| Auth-/Mitgliedschafts-Sprint | 🚜 Mandantenauswahl done; **Fach-RLS Reads** teilweise live | `/anfrageeingang` Liste + Detail; `/vorgaenge` offen |
 
 ---
 
@@ -96,7 +103,8 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | [`docs/fachkonzept/`](./fachkonzept/) | Verbindliches Fachkonzept operative Handwerksplattform |
 | [`docs/adr/ADR-0014-trennung-saas-admin-und-operative-kundenplattform.md`](./adr/ADR-0014-trennung-saas-admin-und-operative-kundenplattform.md) | Domänentrennung `/admin` vs `/` |
 | [`docs/adr/ADR-0015-mandantenbezogene-adressen-und-mehrere-gebaeude.md`](./adr/ADR-0015-mandantenbezogene-adressen-und-mehrere-gebaeude.md) | O2/O3 Adressen und Gebäude |
-| [`docs/fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md`](./fachkonzept/12-spezifikation-migration-1-operative-stammdaten.md) | Migration 1 Stammdaten (Spezifikation) |
+| [`docs/adr/ADR-0020-auth-und-aktiver-mandantenkontext.md`](./adr/ADR-0020-auth-und-aktiver-mandantenkontext.md) | Auth, Mandantenkontext, Domänentrennung operativ |
+| [`docs/fachkonzept/16-auth-und-mandantenkontext-operative-plattform.md`](./fachkonzept/16-auth-und-mandantenkontext-operative-plattform.md) | Spezifikation Auth-/Mandanten-Sprint |
 
 ---
 
@@ -129,3 +137,21 @@ Phase I (Automatisierungen)  ← benötigt Phase H + G
 | 2026-07-28 | RPC `bestaetige_anfrageeingang_zuordnung` angewendet & getestet (T1–T34) |
 | 2026-07-28 | Migration 3.1b (Teil 4) RPC `erstelle_vorgang_aus_anfrageeingang` DDL bereit |
 | 2026-07-28 | RPC `erstelle_vorgang_aus_anfrageeingang` angewendet & getestet (T1–T38) |
+| 2026-07-28 | Migration 3.1b (Teil 5) RPC `ordne_anfrageeingang_vorgang_zu` DDL bereit |
+| 2026-07-28 | RPC `ordne_anfrageeingang_vorgang_zu` angewendet & getestet (T1–T30) |
+| 2026-07-28 | Migration 3.1b (Teil 6) RPC `verwerfe_anfrageeingang` DDL bereit |
+| 2026-07-28 | RPC `verwerfe_anfrageeingang` angewendet & getestet (T1–T30) |
+| 2026-07-28 | Migration 3.1b (Teil 7) RPC `archiviere_anfrageeingang` DDL bereit |
+| 2026-07-28 | RPC `archiviere_anfrageeingang` angewendet & getestet (T1–T18) |
+| 2026-07-28 | Migration 3.1b (Teil 8) RPC `reaktiviere_anfrageeingang` DDL bereit |
+| 2026-07-28 | RPC `reaktiviere_anfrageeingang` angewendet & getestet (T1–T18); **M3.1 vollständig** |
+| 2026-07-28 | Operative UI-Skeletons `/anfrageeingang`, `/vorgaenge` + Navigation |
+| 2026-07-28 | Spezifikation Auth-/Mandantenkontext + ADR-0020 — Implementierung folgt |
+| 2026-07-28 | Live-Schema `organization_members` verifiziert — Entscheidung **B** (Erweiterungsmigration) |
+| 2026-07-28 | Operative Auth-Server-Helfer (`lib/operative-auth/`), Route Guard `(protected)`, `@supabase/ssr` |
+| 2026-07-28 | Operative Login-UI `/login` + Server Actions; Logout-Action vorbereitet |
+| 2026-07-28 | Operative Read-RLS `anfrageeingaenge`/`vorgaenge`/`vorgang_beteiligte` angewendet & getestet |
+| 2026-07-28 | **Live-Liste `/anfrageeingang`** — authenticated SSR-Read, Mandantenfilter, KPI-Counts |
+| 2026-07-28 | **Detailseite `/anfrageeingang/[id]`** — Read-only, RLS + Mandantenschutz, JSON/Rohinhalt |
+| 2026-07-28 | **Verwerfen-Action** auf Detailseite — RPC `verwerfe_anfrageeingang` via Service Role in Server Action |
+| 2026-07-28 | **Archivieren-Action** auf Detailseite — RPC `archiviere_anfrageeingang`, Redirect zur Liste |
